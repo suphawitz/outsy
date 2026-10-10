@@ -1,0 +1,962 @@
+/* ==========================================================================
+   1. การกำหนดฟอนต์และการตั้งค่าเริ่มต้น (Global Styles)
+   ========================================================================== */
+body, button, input, select, textarea {
+    font-family: 'Kanit', sans-serif;
+}
+
+i, .fa-solid, .fa-regular, .fa-brands {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+/* ==========================================================================
+   2. แถบเมนูด้านบน (Floating Navbar)
+   - แถบเมนูลอยขอบมนใส (Glassmorphism)
+   - ปุ่มโปรไฟล์ขวาบนเมื่อ Login สำเร็จจะเปลี่ยนเป็นสีฟ้า #4ec7ca
+   ========================================================================== */
+.navbar {
+    position: fixed;
+    top: 20px;
+    left: 0;
+    right: 0;
+    z-index: 9999; /* ดัน z-index ขึ้นสูงเพื่อให้อยู่เหนือวิดีโอและ overlay */
+    display: flex;
+    justify-content: center;
+    padding: 0 20px;
+    pointer-events: auto; /* เปิดให้รับการคลิกได้ปกติ */
+}
+
+.nav-container {
+    pointer-events: auto;
+    width: 100%;
+    max-width: 1100px;
+    height: 65px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 50px;
+    padding: 0 16px 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.nav-container a,
+.nav-container button {
+    pointer-events: auto;
+    position: relative;
+    z-index: 10000;
+}
+
+.logo-link {
+    display: flex;
+    align-items: center;
+}
+
+.brand-logo {
+    height: 80px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* ลิงก์เมนูตรงกลาง Navbar */
+.nav-menu-links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: #4a5568;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: #1fa7b0;
+}
+
+/* กลุ่มปุ่มฝั่งขวา */
+.nav-auth-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* ปุ่มปฏิทินใน Navbar */
+.btn-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fcd600;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 40px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-nav-item:hover {
+    background: #1fa7b0;
+    transform: translateY(-2px);
+}
+
+/* ปุ่มรายการโปรด (สีแดง/ชมพูสด) */
+.btn-fav-nav {
+    background: #ff4757 !important;
+}
+
+.btn-fav-nav:hover {
+    background: #e84118 !important;
+}
+
+/* ปุ่มเข้าสู่ระบบ / สมัครสมาชิก (ตั้งต้นสีดำ) */
+.btn-user-auth {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #0d1117;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 40px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-user-auth:hover {
+    background: #1fa7b0;
+    transform: translateY(-2px);
+}
+
+/* 🌟 เมื่อล็อกอินสำเร็จ -> ปุ่มเปลี่ยนเป็นสีฟ้า #4ec7ca */
+.btn-user-auth.logged-in {
+    background-color: #4ec7ca !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(78, 199, 202, 0.35);
+}
+
+.btn-user-auth.logged-in:hover {
+    background-color: #3bb3b6 !important;
+    transform: translateY(-2px);
+}
+
+
+/* ==========================================================================
+   3. ส่วนหัวต้อนรับเต็มหน้าจอ (Hero Fullscreen Section)
+   ========================================================================== */
+.hero-section {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+    background-color: #1a202c;
+}
+
+.hero-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25);
+    z-index: 2;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    padding: 0 20px;
+}
+
+.hero-logo {
+    max-width: 870px;
+    width: 90%;
+    height: auto;
+    filter: drop-shadow(0px 8px 16px rgba(0, 0, 0, 0.35));
+    animation: floatAnim 3s ease-in-out infinite;
+}
+
+@keyframes floatAnim {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+.bottom-blur-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 180px;
+    pointer-events: none;
+    z-index: 2;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background: linear-gradient(to bottom, 
+        rgba(255, 255, 255, 0) 0%, 
+        rgba(255, 255, 255, 0.4) 40%, 
+        rgba(255, 255, 255, 0.8) 75%, 
+        rgba(255, 255, 255, 1) 100%
+    );
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
+}
+
+.btn-dreamland-yellow {
+    font-family: 'Mitr', 'Kanit', sans-serif;
+    background-color: #4ec7ca;
+    color: #ffffff !important;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    padding: 15px 50px;
+    text-align: center;
+    min-width: 220px;
+    border-radius: 50px;
+    text-decoration: none;
+    display: inline-block;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 4;
+}
+
+.btn-dreamland-yellow:hover {
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
+    transform: translateY(-2px);
+}
+
+
+/* ==========================================================================
+   4. ส่วนเนื้อหาหลักและการจัด Layout (Main Container)
+   ========================================================================== */
+.main-container {
+    display: flex;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 4% 50px 4%;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.random-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: 310px;
+    width: 100%;
+}
+
+.filter-box {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 16px;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.filter-box label {
+    font-size: 13.5px;
+    color: #2d3748;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filter-box select {
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e0;
+    color: #2d3748;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
+    outline: none;
+}
+
+.btn-random-box {
+    background: #ffe847;
+    border: none;
+    border-radius: 18px;
+    padding: 18px;
+    color: #2d3748;
+    font-size: 18px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 6px 16px rgba(255, 232, 71, 0.4);
+    transition: transform 0.2s, background 0.2s;
+}
+
+.btn-random-box:hover {
+    transform: translateY(-2px);
+    background: #eed235;
+}
+
+.btn-random-box:hover i {
+    transform: rotate(180deg) scale(1.15);
+    transition: transform 0.4s ease;
+}
+
+.btn-random-box i { font-size: 22px; color: #2d3748; }
+
+.result-card {
+    background-color: #ffffff;
+    border: 2px dashed #cbd5e0;
+    border-radius: 18px;
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.result-placeholder { color: #a0aec0; text-align: center; font-size: 13px; line-height: 1.5; }
+.result-placeholder i { font-size: 32px; margin-bottom: 10px; color: #cbd5e0; }
+
+.list-side {
+    flex: 2.5;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 50px;
+    padding: 12px 22px;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    transition: all 0.25s ease;
+}
+
+.search-box:focus-within {
+    border-color: #2acbcf;
+    box-shadow: 0 4px 16px rgba(42, 203, 207, 0.15);
+}
+
+.search-box i { color: #2acbcf; font-size: 18px; }
+
+.search-box input {
+    background: transparent;
+    border: none; outline: none;
+    color: #2d3748; width: 100%; font-size: 14.5px; font-weight: 500;
+}
+
+.search-box input::placeholder { color: #a0aec0; }
+
+.category-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn-category {
+    background-color: #ffffff;
+    color: #2d3748;
+    border: 1px solid #e2e8f0;
+    padding: 7px 16px;
+    border-radius: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-category:hover { border-color: #2acbcf; color: #2acbcf; }
+.btn-category.active {
+    background-color: #2acbcf !important;
+    color: #ffffff !important;
+    border-color: #2acbcf !important;
+    font-weight: 700;
+}
+
+.list-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 5px; border-bottom: 2px solid #edf2f7; padding-bottom: 12px;
+}
+
+.list-header h2 { font-size: 17px; color: #1a202c; font-weight: 800; }
+.count-tag {
+    background-color: #e2f7f8; color: #1fa7b0;
+    padding: 4px 12px; border-radius: 20px; font-size: 12.5px; font-weight: 700;
+}
+
+.places-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px; max-height: 580px; overflow-y: auto; padding-right: 6px;
+}
+
+.place-card {
+    background-color: #ffffff; border-radius: 16px; overflow: hidden;
+    border: 1px solid #e2e8f0; display: flex; flex-direction: column; transition: all 0.25s ease;
+    position: relative;
+}
+
+.place-card:hover { 
+    transform: translateY(-3px); border-color: #2acbcf; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.card-image { 
+    width: 100%; height: 140px; min-height: 140px;
+    background-size: cover; background-position: center; flex-shrink: 0;
+}
+
+.card-info { padding: 14px; display: flex; flex-direction: column; gap: 6px; flex-grow: 1; }
+.tag { font-size: 11px; background-color: #e2f7f8; color: #1fa7b0; padding: 3px 8px; border-radius: 6px; font-weight: 700; align-self: flex-start; }
+.card-info h3 { margin: 2px 0; font-size: 15px; font-weight: 700; color: #2d3748; }
+.meta { font-size: 12.5px; color: #718096; }
+.meta i { color: #ffe847; }
+
+
+/* ==========================================================================
+   5. หน้ารายการโปรดแบบเต็มหน้าจอ (Favorites Page View)
+   ========================================================================== */
+.favorites-page-container {
+    max-width: 1000px;
+    margin: 110px auto 60px auto;
+    padding: 0 20px;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.favorites-page-content {
+    background-color: #ffffff;
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
+}
+
+.fav-header {
+    margin-bottom: 25px;
+    border-bottom: 2px dashed #edf2f7;
+    padding-bottom: 15px;
+}
+
+.fav-header h2 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1a202c;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.fav-header p {
+    font-size: 14px;
+    color: #718096;
+    margin-top: 4px;
+}
+
+.fav-places-grid {
+    max-height: none;
+}
+
+.btn-remove-fav-card {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    color: #ff4757;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: transform 0.2s;
+}
+
+.btn-remove-fav-card:hover {
+    transform: scale(1.15);
+}
+
+
+/* ==========================================================================
+   6. หน้ารายละเอียดสถานที่แบบเต็มหน้าจอ (Detail Page View)
+   ========================================================================== */
+.detail-page-container {
+    max-width: 900px;
+    margin: 110px auto 60px auto;
+    padding: 0 20px;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.detail-page-content {
+    background-color: #ffffff;
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
+}
+
+.btn-back {
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e0;
+    color: #4a5568;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    transition: all 0.2s ease;
+}
+
+.btn-back:hover {
+    background-color: #2acbcf;
+    color: #ffffff;
+    border-color: #2acbcf;
+}
+
+.detail-banner-box {
+    position: relative;
+    width: 100%;
+    height: 360px;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.detail-banner-img { width: 100%; height: 100%; object-fit: cover; }
+
+.detail-tag-badge {
+    position: absolute;
+    bottom: 15px; left: 15px;
+    font-size: 13px; padding: 6px 14px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.btn-favorite {
+    position: absolute;
+    top: 15px; right: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none; width: 45px; height: 45px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 22px; color: #a0aec0; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); transition: all 0.25s ease;
+}
+
+.btn-favorite:hover { transform: scale(1.1); }
+.btn-favorite.active { color: #ff3b4b !important; background: #ffffff; }
+
+.detail-title-text { font-size: 28px; font-weight: 800; color: #1a202c; margin-bottom: 8px; }
+
+.detail-meta-row { display: flex; gap: 20px; align-items: center; font-size: 15px; margin-bottom: 20px; }
+.rating-display { color: #2d3748; font-weight: 700; }
+.rating-display i { color: #ffe847; }
+.review-count-text { color: #718096; font-weight: 400; font-size: 13.5px; }
+.province-display { color: #1fa7b0; font-weight: 700; }
+
+.detail-info-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px; margin-bottom: 25px;
+}
+
+.info-card-item {
+    background-color: #f8fafc; border: 1px solid #e2e8f0;
+    padding: 16px 20px; border-radius: 16px;
+    display: flex; align-items: center; gap: 14px;
+}
+
+.info-card-item i { font-size: 24px; color: #2acbcf; }
+.info-card-item strong { font-size: 13px; color: #718096; display: block; }
+.info-card-item p { font-size: 15px; color: #2d3748; font-weight: 700; }
+
+.detail-body-box { margin-bottom: 25px; }
+.detail-body-box h3 { font-size: 18px; color: #2d3748; font-weight: 700; margin-bottom: 10px; }
+.detail-body-box p { font-size: 15px; color: #4a5568; line-height: 1.7; }
+
+.btn-map-gps {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    background-color: #2acbcf; color: #ffffff; font-size: 16px; font-weight: 700;
+    padding: 15px; border-radius: 14px; text-decoration: none;
+    box-shadow: 0 6px 18px rgba(42, 203, 207, 0.3); transition: all 0.25s ease;
+}
+
+.btn-map-gps:hover { background-color: #1fa7b0; transform: translateY(-2px); }
+
+.divider-line { border: none; border-top: 2px dashed #edf2f7; margin: 30px 0; }
+
+.review-section { text-align: left; }
+.review-section h3 { font-size: 18px; color: #2d3748; font-weight: 700; margin-bottom: 15px; }
+
+.star-rating-input {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 14px; color: #4a5568; font-weight: 700;
+}
+
+.stars-selector { display: flex; gap: 6px; color: #ffe847; font-size: 24px; cursor: pointer; }
+
+.btn-submit-review {
+    width: 100%; padding: 12px; background-color: #2acbcf; color: #ffffff;
+    border: none; border-radius: 12px; font-weight: 700; font-size: 15px;
+    cursor: pointer; margin-top: 12px; transition: background 0.2s;
+}
+
+.btn-submit-review:hover { background-color: #1fa7b0; }
+
+.reviews-list-container { margin-top: 25px; }
+.reviews-list-container h4 { font-size: 16px; color: #2d3748; margin-bottom: 12px; }
+
+.reviews-list { display: flex; flex-direction: column; gap: 12px; }
+
+.review-item {
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    padding: 14px 16px; border-radius: 14px;
+}
+
+.review-item-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.review-item-name { font-weight: 700; color: #2d3748; font-size: 14px; }
+.review-item-stars { color: #eed235; font-size: 13px; }
+.review-item-comment { color: #4a5568; font-size: 14px; line-height: 1.5; }
+.no-reviews { color: #a0aec0; font-size: 14px; text-align: center; padding: 15px; }
+
+
+/* ==========================================================================
+   7. ป๊อปอัพผลลัพธ์การสุ่ม (Random Pop-up Modal)
+   ========================================================================== */
+.random-popup-box {
+    max-width: 440px !important;
+}
+
+.popup-meta-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 10px;
+}
+
+.popup-meta-row i { color: #ffe847; }
+
+.popup-info-fee {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #4a5568;
+    margin-bottom: 12px;
+}
+
+.popup-desc-preview {
+    font-size: 13.5px;
+    color: #718096;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.popup-action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-rerandom {
+    flex: 1;
+    background-color: #ffe847;
+    border: 2px solid #eed235;
+    color: #2d3748;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-rerandom:hover { background-color: #eed235; transform: translateY(-1px); }
+
+.btn-go-detail {
+    flex: 1.2;
+    background-color: #2acbcf;
+    border: 2px solid #2acbcf;
+    color: #ffffff;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-go-detail:hover { background-color: #1fa7b0; transform: translateY(-1px); }
+
+
+/* ==========================================================================
+   8. ป๊อปอัพเข้าสู่ระบบ / สมัครสมาชิก (Login Modal - ดีไซน์ใหม่)
+   ========================================================================== */
+.login-modal-custom {
+    max-width: 450px !important;
+    border-radius: 28px !important;
+    border: none !important;
+    padding: 35px 32px 30px 32px !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important;
+}
+
+.login-header-box {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.login-logo-img {
+    height: 150px;
+    width: auto;
+    object-fit: contain;
+    margin-bottom: 5px;
+}
+
+.login-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1a202c;
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
+}
+
+.login-subtitle {
+    font-size: 13.5px;
+    color: #718096;
+    font-weight: 500;
+}
+
+.input-group label {
+    display: block;
+    color: #2d3748;
+    font-size: 14px;
+    margin-bottom: 6px;
+    font-weight: 700;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 16px;
+    background-color: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    color: #2d3748;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.2s ease;
+    font-family: 'Kanit', sans-serif;
+}
+
+.input-group input:focus {
+    border-color: #e53935;
+    box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.12);
+}
+
+.input-group input::placeholder {
+    color: #a0aec0;
+}
+
+.btn-login-red {
+    width: 100%;
+    padding: 13px;
+    background-color: #e53935;
+    border: none;
+    border-radius: 12px;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+    box-shadow: 0 4px 12px rgba(229, 57, 53, 0.3);
+    transition: all 0.2s ease;
+}
+
+.btn-login-red:hover {
+    background-color: #d32f2f;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(229, 57, 53, 0.4);
+}
+
+.btn-reg-submit {
+    background-color: #2acbcf !important;
+    box-shadow: 0 4px 12px rgba(42, 203, 207, 0.3) !important;
+}
+
+.btn-reg-submit:hover {
+    background-color: #1fa7b0 !important;
+}
+
+.login-modal-custom .btn-close {
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    color: #a0aec0;
+    font-size: 26px;
+}
+
+.login-modal-custom .btn-close:hover {
+    color: #e53935;
+    background: transparent;
+}
+
+
+/* ==========================================================================
+   9. Modals อื่นๆ (Calendar & Flipbook) & Responsive Display
+   ========================================================================== */
+.calendar-modal-content {
+    background-color: #fff8d6; border: 4px solid #c8a27c; border-radius: 28px;
+    width: 100%; max-width: 850px; padding: 30px; position: relative;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15); animation: scaleUp 0.25s ease-out;
+}
+
+.calendar-header h2 { color: #5c4033; font-size: 24px; font-weight: 900; }
+.calendar-header p { color: #8c6d58; font-size: 14px; margin-top: 4px; margin-bottom: 20px; }
+
+.calendar-container { display: flex; gap: 25px; flex-wrap: wrap; }
+.calendar-box { flex: 1.3; background-color: #ffffff; border-radius: 20px; padding: 20px; border: 2px solid #c8a27c; }
+.calendar-month-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.calendar-month-bar h3 { color: #5c4033; font-size: 18px; }
+.calendar-month-bar button { background-color: #e0f7f6; border: 1px solid #2acbcf; color: #1fa7b0; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: bold; }
+.calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: bold; color: #8c6d58; font-size: 13px; margin-bottom: 10px; }
+.calendar-days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+
+.calendar-day-cell {
+    aspect-ratio: 1; background-color: #e0f7f6; border: 1px solid #b2ece9; border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    padding: 4px; cursor: pointer; font-size: 12px; font-weight: bold; color: #2d3748;
+    transition: all 0.2s; position: relative; overflow: hidden;
+}
+
+.calendar-day-cell:hover { background-color: #ffe847; border-color: #c8a27c; }
+.calendar-day-cell.selected { border: 2px solid #ff3b4b; background-color: #fff8d6; }
+.calendar-day-cell .thumb-img { width: 100%; height: 24px; object-fit: cover; border-radius: 6px; margin-top: 2px; }
+
+.diary-form-box { flex: 1; background-color: #ffffff; border-radius: 20px; padding: 20px; border: 2px solid #c8a27c; display: flex; flex-direction: column; }
+.diary-form-box h3 { font-size: 16px; color: #5c4033; margin-bottom: 15px; }
+
+.btn-view-gallery { flex: 1.2; background-color: #e0f7f6; border: 2px solid #2acbcf; color: #1fa7b0; padding: 12px 8px; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+.btn-view-gallery:hover { background-color: #2acbcf; color: #ffffff; }
+
+.btn-save-diary { flex: 1; background-color: #ffe847; border: 2px solid #c8a27c; color: #2d3748; padding: 12px 8px; border-radius: 12px; font-weight: 900; font-size: 13px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 10px rgba(200, 162, 124, 0.3); }
+.btn-save-diary:hover { background-color: #eed235; transform: translateY(-1px); }
+
+.book-container { position: relative; width: 100%; max-width: 900px; margin: 0 auto; }
+.book-pages-stack { position: absolute; top: 15px; right: -25px; width: 100%; height: 92%; background: repeating-linear-gradient(90deg, #fff8d6, #fff8d6 8px, #c8a27c 9px, #ffffff 10px); border-radius: 24px; box-shadow: 10px 10px 25px rgba(0, 0, 0, 0.2); z-index: 1; }
+.book-cover { position: relative; z-index: 2; background-color: #fff8d6; border: 4px solid #c8a27c; border-radius: 28px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); }
+.book-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px dashed #c8a27c; }
+.book-header h2 { color: #5c4033; font-size: 20px; font-weight: 900; }
+.page-count-badge { background-color: #e0f7f6; border: 1px solid #2acbcf; color: #1fa7b0; padding: 4px 14px; border-radius: 15px; font-size: 13px; font-weight: bold; }
+.book-spread { display: flex; background-color: #ffffff; border: 2px solid #c8a27c; border-radius: 20px; min-height: 380px; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); position: relative; overflow: hidden; }
+.book-spread::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: linear-gradient(to right, rgba(0,0,0,0.1), transparent, rgba(0,0,0,0.1)); z-index: 5; }
+.book-page-left, .book-page-right { flex: 1; padding: 25px; display: flex; flex-direction: column; }
+.book-page-left { border-right: 1px dashed #cbd5e0; align-items: center; justify-content: center; background-color: #fcfdfd; }
+.book-page-right { justify-content: flex-start; background-color: #ffffff; }
+
+.polaroid-frame { background: #ffffff; padding: 12px 12px 25px 12px; border: 1px solid #e2e8f0; box-shadow: 0 8px 15px rgba(0,0,0,0.08); transform: rotate(-2deg); border-radius: 8px; width: 100%; max-width: 280px; text-align: center; }
+.polaroid-img { width: 100%; height: 180px; object-fit: cover; border-radius: 4px; }
+.polaroid-date { font-size: 13px; font-weight: 800; color: #ff3b4b; margin-top: 10px; }
+.book-diary-title { font-size: 18px; font-weight: 900; color: #5c4033; margin-bottom: 8px; }
+.book-diary-location { font-size: 14px; color: #1fa7b0; font-weight: bold; margin-bottom: 15px; }
+.book-diary-body { font-size: 14px; color: #4a5568; line-height: 1.7; background-color: #fff8d6; padding: 15px; border-radius: 12px; border: 1px solid #c8a27c; flex-grow: 1; }
+
+.book-controls { display: flex; justify-content: space-between; margin-top: 20px; }
+.btn-book-nav { background-color: #ffe847; border: 2px solid #c8a27c; color: #5c4033; padding: 10px 20px; border-radius: 15px; font-weight: bold; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+.btn-book-nav:hover { background-color: #eed235; transform: translateY(-1px); }
+.btn-book-nav:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(26, 32, 44, 0.65); backdrop-filter: blur(6px); z-index: 1000;
+    align-items: center; justify-content: center; padding: 20px;
+}
+
+.modal-content {
+    background-color: #ffffff; border-radius: 24px; width: 100%; max-width: 420px;
+    overflow: hidden; position: relative; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    border: 3px solid #ffe847; animation: scaleUp 0.25s ease-out;
+}
+
+@keyframes scaleUp { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.text-padding { padding: 35px; }
+.btn-close { position: absolute; top: 15px; right: 20px; background: rgba(255, 255, 255, 0.85); border: none; color: #4a5568; font-size: 22px; cursor: pointer; width: 34px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s; z-index: 10; }
+.btn-close:hover { color: #ffffff; background-color: #ff3b4b; }
+
+#random-modal-image { height: 200px; background-size: cover; background-position: center; position: relative; }
+.image-gradient-layer { position: absolute; bottom: 0; left: 0; width: 100%; padding: 15px 20px; background: linear-gradient(transparent, #ffffff); }
+#random-result-modal .tag { font-size: 11px; background-color: #ffe847; color: #2d3748; padding: 4px 10px; border-radius: 6px; font-weight: bold; }
+#random-modal-title { color: #1a202c; margin-top: 6px; font-size: 20px; font-weight: 800; }
+.modal-body-content { padding: 0 22px 22px 22px; background-color: #ffffff; }
+
+.switch-text { margin-top: 15px; font-size: 13px; color: #718096; text-align: center; }
+.switch-text a { color: #1fa7b0; text-decoration: none; font-weight: bold; }
+
+/* Responsive สำหรับมือถือและแท็บเล็ต */
+@media (max-width: 900px) {
+    .nav-menu-links { display: none; }
+}
+
+@media (max-width: 768px) {
+    .btn-dreamland-yellow { padding: 12px 30px; font-size: 1rem; }
+    .main-container { flex-direction: column; }
+    .calendar-container { flex-direction: column; }
+    .book-spread { flex-direction: column; }
+    .book-page-left { border-right: none; border-bottom: 1px dashed #cbd5e0; }
+}
+
+@media (max-width: 600px) {
+    .btn-nav-item span, .btn-user-auth span { display: none; }
+    .btn-nav-item, .btn-user-auth { padding: 10px; }
+}
