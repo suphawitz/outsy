@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../client';
+import PrivateDocumentImage from '../components/PrivateDocumentImage';
+import { validateImage, requireChangedRow } from '../lib/privateDocuments';
 
 export default function BookingHistory() {
   const navigate = useNavigate();
@@ -146,18 +148,7 @@ export default function BookingHistory() {
       setLoading(true);
       setErrorMessage('');
 
-      const email = (user.email || '').trim();
-      const userId = user.id;
-
-      let query = supabase.from('bookings').select('*');
-
-      if (userId && email) {
-        query = query.or(`user_id.eq.${userId},customer_email.ilike.${email}`);
-      } else if (userId) {
-        query = query.eq('user_id', userId);
-      } else {
-        query = query.ilike('customer_email', email);
-      }
+      const query = supabase.from('bookings').select('*').eq('user_id', user.id);
 
       const { data: bList, error: bErr } = await query.order('created_at', { ascending: false });
       if (bErr) throw bErr;
@@ -244,18 +235,18 @@ export default function BookingHistory() {
     setUploadingBookingId(bookingId);
 
     try {
-      const fileExt = file.name.split('.').pop();
+      await validateImage(file);
+      const fileExt = ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'})[file.type];
       const fileName = `slip_${bookingId}_${Date.now()}.${fileExt}`;
       const filePath = `slips/${fileName}`;
 
-      const { error: uploadErr } = await supabase.storage.from('slips').upload(filePath, file, { upsert: true });
+      const { error: uploadErr } = await supabase.storage.from('slips').upload(filePath, file, { upsert: false, contentType: file.type });
       if (uploadErr) throw uploadErr;
 
-      const { data: pubUrlData } = supabase.storage.from('slips').getPublicUrl(filePath);
-      const slipUrl = pubUrlData?.publicUrl || filePath;
+      const slipUrl = filePath;
 
-      const { error: updateErr } = await supabase.from('bookings').update({ slip: slipUrl, booking_status: 'รอตรวจสอบยอด' }).eq('booking_id', bookingId);
-      if (updateErr) throw updateErr;
+      const { data: updatedBooking, error: updateErr } = await supabase.from('bookings').update({ slip: slipUrl, booking_status: 'รอตรวจสอบยอด' }).eq('booking_id', bookingId).select('booking_id').maybeSingle();
+      requireChangedRow({data:updatedBooking,error:updateErr}, 'ไม่มีสิทธิ์อัปเดตการจอง กรุณาติดต่อผู้ดูแล');
 
       showAlertModal('แนบสลิปสำเร็จ! 🎉', 'ระบบส่งหลักฐานให้แอดมินตรวจสอบเรียบร้อยแล้วค่ะ', '📤');
       if (currentUser) loadBookings(currentUser);
@@ -449,14 +440,14 @@ export default function BookingHistory() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px dashed ${theme.border}`, paddingTop: '12px', flexWrap: 'wrap', gap: '10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         {booking.slip ? (
-                          <button type="button" onClick={() => { const url = booking.slip.startsWith('http') ? booking.slip : supabase.storage.from('slips').getPublicUrl(booking.slip).data?.publicUrl; setPreviewSlipUrl(url); }} style={{ backgroundColor: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '6px 14px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>📎 ดูสลิปที่แนบไว้</button>
+                          <button type="button" onClick={() => { setPreviewSlipUrl(booking.slip); }} style={{ backgroundColor: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '6px 14px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>📎 ดูสลิปที่แนบไว้</button>
                         ) : (
                           <span style={{ fontSize: '12px', color: theme.textMuted }}>ยังไม่ได้แนบสลิปการโอนเงิน</span>
                         )}
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <input type="file" id={`slip-upload-${booking.booking_id}`} accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files && e.target.files[0]) { handleUploadNewSlip(booking.booking_id, e.target.files[0]); } }} />
+                        <input type="file" id={`slip-upload-${booking.booking_id}`} accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={(e) => { if (e.target.files && e.target.files[0]) { handleUploadNewSlip(booking.booking_id, e.target.files[0]); } }} />
                         <label htmlFor={`slip-upload-${booking.booking_id}`} style={{ backgroundColor: theme.yellow, color: theme.brown, padding: '7px 16px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 2px 6px rgba(253,213,1,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>{uploadingBookingId === booking.booking_id ? '⏳ กำลังอัปโหลด...' : '📤 แนบสลิปใหม่'}</label>
                         <button type="button" onClick={() => navigate(`/booking-detail/${booking.booking_id}`)} style={{ backgroundColor: '#f1f5f9', border: `1.5px solid ${theme.border}`, color: theme.brown, padding: '7px 14px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>ดูรายละเอียด →</button>
                       </div>
@@ -481,7 +472,7 @@ export default function BookingHistory() {
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button type="button" onClick={() => setRescheduleModal({ show: false, booking: null, newDate: '' })} style={{ flex: 1, backgroundColor: '#f1f5f9', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}>ยกเลิก</button>
-              <button type="button" onClick={async () => { if (!rescheduleModal.newDate) { showAlertModal('แจ้งเตือน', 'กรุณาเลือกวันที่ต้องการเปลี่ยน', '⚠️'); return; } try { const oldDate = rescheduleModal.booking.travel_date; const { error } = await supabase.from('bookings').update({ booking_status: 'ขอเปลี่ยนวันเดินทาง', old_travel_date: oldDate, travel_date: rescheduleModal.newDate }).eq('booking_id', rescheduleModal.booking.booking_id); if (error) throw error; showAlertModal('ส่งคำขอเปลี่ยนวันสำเร็จ! 🎉', `ระบบได้ส่งคำขอเปลี่ยนเป็นวันที่ ${rescheduleModal.newDate} ให้แอดมินตรวจสอบแล้ว`, '✅'); setRescheduleModal({ show: false, booking: null, newDate: '' }); loadBookings(currentUser); } catch (err) { showAlertModal('เกิดข้อผิดพลาด', err.message, '⚠️'); } }} style={{ flex: 1, backgroundColor: theme.cyan, color: '#013a3d', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer' }}>ยืนยันเปลี่ยนวัน</button>
+              <button type="button" onClick={async () => { if (!rescheduleModal.newDate) { showAlertModal('แจ้งเตือน', 'กรุณาเลือกวันที่ต้องการเปลี่ยน', '⚠️'); return; } try { const oldDate = rescheduleModal.booking.travel_date; const { data: changed, error } = await supabase.from('bookings').update({ booking_status: 'ขอเปลี่ยนวันเดินทาง', old_travel_date: oldDate, travel_date: rescheduleModal.newDate }).eq('booking_id', rescheduleModal.booking.booking_id).select('booking_id').maybeSingle(); if (error) throw error; if (!changed) throw new Error('ไม่มีสิทธิ์ส่งคำขอเปลี่ยนวัน กรุณาติดต่อผู้ดูแล'); showAlertModal('ส่งคำขอเปลี่ยนวันสำเร็จ! 🎉', `ระบบได้ส่งคำขอเปลี่ยนเป็นวันที่ ${rescheduleModal.newDate} ให้แอดมินตรวจสอบแล้ว`, '✅'); setRescheduleModal({ show: false, booking: null, newDate: '' }); loadBookings(currentUser); } catch (err) { showAlertModal('เกิดข้อผิดพลาด', err.message, '⚠️'); } }} style={{ flex: 1, backgroundColor: theme.cyan, color: '#013a3d', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer' }}>ยืนยันเปลี่ยนวัน</button>
             </div>
           </div>
         </div>
@@ -529,7 +520,7 @@ export default function BookingHistory() {
             </div>
             <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
               <button type="button" onClick={() => setRefundModal({ show: false, booking: null })} style={{ flex: 1, backgroundColor: '#f1f5f9', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}>ยกเลิก</button>
-              <button type="button" disabled={refundModal.submitting} onClick={async () => { if (!refundModal.accountNo || !refundModal.accountName || !refundModal.phone) { showAlertModal('แจ้งเตือน', 'กรุณากรอกข้อมูลบัญชีให้ครบถ้วน', '⚠️'); return; } if (!refundModal.bookBankFile) { showAlertModal('แจ้งเตือน', 'กรุณาแนบไฟล์หน้าสมุดบัญชี (Book Bank) ก่อนยืนยัน', '⚠️'); return; } const phoneRegex = /^[0-9]+$/; if (!phoneRegex.test(refundModal.phone)) { showAlertModal('แจ้งเตือน', 'กรุณากรอกเบอร์โทรศัพท์เป็นตัวเลขเท่านั้น', '⚠️'); return; } if (!phoneRegex.test(refundModal.accountNo)) { showAlertModal('แจ้งเตือน', 'กรุณากรอกเลขที่บัญชีเป็นตัวเลขเท่านั้น', '⚠️'); return; } setRefundModal((prev) => ({ ...prev, submitting: true })); try { let bookBankUrl = ''; if (refundModal.bookBankFile) { const file = refundModal.bookBankFile; const fileExt = file.name.split('.').pop(); const filePath = `bookbank/bb_${refundModal.booking.booking_id}_${Date.now()}.${fileExt}`; const { error: upErr } = await supabase.storage.from('slips').upload(filePath, file, { upsert: true }); if (!upErr) { bookBankUrl = supabase.storage.from('slips').getPublicUrl(filePath).data?.publicUrl || ''; } } const { error: insErr } = await supabase.from('refund_requests').insert([{ booking_id: refundModal.booking.booking_id, customer_name: refundModal.accountName, bank_name: refundModal.bankName, account_no: refundModal.accountNo, account_name: refundModal.accountName, email: refundModal.email, phone: refundModal.phone, book_bank_url: bookBankUrl, status: 'รอดำเนินการ', }]); if (insErr) throw insErr; await supabase.from('bookings').update({ booking_status: 'ส่งเรื่องขอคืนเงินแล้ว' }).eq('booking_id', refundModal.booking.booking_id); showAlertModal('ส่งเรื่องขอคืนเงินสำเร็จ! 🎉', 'เจ้าหน้าที่ตรวจสอบและโอนเงินคืนเข้าบัญชีของท่านภายใน 1-3 วันทำการค่ะ', '💸'); setRefundModal({ show: false, booking: null }); loadBookings(currentUser); } catch (err) { showAlertModal('เกิดข้อผิดพลาด', err.message, '⚠️'); } finally { setRefundModal((prev) => ({ ...prev, submitting: false })); } }} style={{ flex: 1, backgroundColor: theme.red, color: '#ffffff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '900', cursor: refundModal.submitting ? 'not-allowed' : 'pointer', opacity: refundModal.submitting ? 0.7 : 1 }}>{refundModal.submitting ? 'กำลังส่งข้อมูลคิว...' : 'ยืนยันส่งเรื่องขอคืนเงิน'}</button>
+              <button type="button" disabled={refundModal.submitting} onClick={async () => { if (!refundModal.accountNo || !refundModal.accountName || !refundModal.phone) { showAlertModal('แจ้งเตือน', 'กรุณากรอกข้อมูลบัญชีให้ครบถ้วน', '⚠️'); return; } if (!refundModal.bookBankFile) { showAlertModal('แจ้งเตือน', 'กรุณาแนบไฟล์หน้าสมุดบัญชี (Book Bank) ก่อนยืนยัน', '⚠️'); return; } const phoneRegex = /^[0-9]+$/; if (!phoneRegex.test(refundModal.phone)) { showAlertModal('แจ้งเตือน', 'กรุณากรอกเบอร์โทรศัพท์เป็นตัวเลขเท่านั้น', '⚠️'); return; } if (!phoneRegex.test(refundModal.accountNo)) { showAlertModal('แจ้งเตือน', 'กรุณากรอกเลขที่บัญชีเป็นตัวเลขเท่านั้น', '⚠️'); return; } setRefundModal((prev) => ({ ...prev, submitting: true })); try { let bookBankUrl = ''; if (refundModal.bookBankFile) { const file = refundModal.bookBankFile; await validateImage(file); const fileExt = ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'})[file.type]; const filePath = `bookbank/bb_${refundModal.booking.booking_id}_${Date.now()}.${fileExt}`; const { error: upErr } = await supabase.storage.from('slips').upload(filePath, file, { upsert: false, contentType: file.type }); if (upErr) throw upErr; bookBankUrl = filePath; } const { error: insErr } = await supabase.from('refund_requests').insert([{ booking_id: refundModal.booking.booking_id, customer_name: refundModal.accountName, bank_name: refundModal.bankName, account_no: refundModal.accountNo, account_name: refundModal.accountName, email: refundModal.email, phone: refundModal.phone, book_bank_url: bookBankUrl, status: 'รอดำเนินการ', }]); if (insErr) throw insErr; const { data: changedBooking, error: bookingUpdateError } = await supabase.from('bookings').update({ booking_status: 'ส่งเรื่องขอคืนเงินแล้ว' }).eq('booking_id', refundModal.booking.booking_id).select('booking_id').maybeSingle(); if (bookingUpdateError || !changedBooking) throw new Error('บันทึกคำขอคืนเงินแล้ว แต่ปรับสถานะการจองไม่ได้ กรุณาติดต่อผู้ดูแลก่อนส่งซ้ำ'); showAlertModal('ส่งเรื่องขอคืนเงินสำเร็จ! 🎉', 'เจ้าหน้าที่ตรวจสอบและโอนเงินคืนเข้าบัญชีของท่านภายใน 1-3 วันทำการค่ะ', '💸'); setRefundModal({ show: false, booking: null }); loadBookings(currentUser); } catch (err) { showAlertModal('เกิดข้อผิดพลาด', err.message, '⚠️'); } finally { setRefundModal((prev) => ({ ...prev, submitting: false })); } }} style={{ flex: 1, backgroundColor: theme.red, color: '#ffffff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '900', cursor: refundModal.submitting ? 'not-allowed' : 'pointer', opacity: refundModal.submitting ? 0.7 : 1 }}>{refundModal.submitting ? 'กำลังส่งข้อมูลคิว...' : 'ยืนยันส่งเรื่องขอคืนเงิน'}</button>
             </div>
           </div>
         </div>
@@ -539,7 +530,7 @@ export default function BookingHistory() {
         <div onClick={() => setPreviewSlipUrl(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}>
           <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '20px', padding: '20px', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 25px 50px rgba(0,0,0,0.2)' }}>
             <h3 style={{ margin: '0 0 12px', color: theme.brown, fontSize: '16px' }}>หลักฐานการโอนเงิน (Slip)</h3>
-            <img src={previewSlipUrl} alt="Slip" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '12px' }} />
+            <PrivateDocumentImage value={previewSlipUrl} alt="Slip" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '12px' }} />
             <button type="button" onClick={() => setPreviewSlipUrl(null)} style={{ marginTop: '16px', backgroundColor: theme.brown, color: '#ffffff', border: 'none', padding: '8px 24px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' }}>ปิดหน้าต่าง</button>
           </div>
         </div>

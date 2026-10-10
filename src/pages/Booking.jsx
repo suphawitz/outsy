@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../client';
+import { validateImage, requireChangedRow } from '../lib/privateDocuments';
 
 export default function Booking() {
   const { id } = useParams();
@@ -99,6 +100,7 @@ export default function Booking() {
 
   const handleProceedToPayment = async (e) => {
     e.preventDefault();
+    if (bookingRefId) { setFormError(`มีรายการจอง #${bookingRefId} แล้ว กรุณาตรวจประวัติหรือติดต่อผู้ดูแลก่อนจองซ้ำ`); return; }
     setFormError('');
 
     const missing = {
@@ -194,10 +196,11 @@ export default function Booking() {
       }
 
       const { data: bookingData, error: bookingError } = await supabase.from('bookings').insert([insertRecord]).select().single();
-      if (bookingError) { setFormError(`บันทึกการจองไม่สำเร็จ: ${bookingError.message}`); return; }
+      if (bookingError) { setFormError(bookingError.code === '42501' ? 'ระบบยังไม่อนุญาตให้บัญชีนี้สร้างการจอง กรุณาติดต่อผู้ดูแลเพื่อตรวจสิทธิ์ Supabase' : `บันทึกการจองไม่สำเร็จ: ${bookingError.message}`); return; }
       if (!bookingData) throw new Error('ไม่สามารถสร้างรายการจองได้');
 
       const generatedBookingId = bookingData.booking_id;
+      setBookingRefId(String(generatedBookingId));
       const validTravelers = additionalTravelers.filter((t) => t.firstName.trim() || t.lastName.trim() || t.phone.trim());
 
       if (validTravelers.length > 0) {
@@ -209,19 +212,26 @@ export default function Booking() {
 
         const { error: travelerInsertError } = await supabase.from('booking_travelers').insert(travelerRecords);
         if (travelerInsertError) {
-          await supabase.from('bookings').delete().eq('booking_id', generatedBookingId);
-          throw new Error(`บันทึกข้อมูลผู้เดินทางไม่สำเร็จ: ${travelerInsertError.message}`);
+          const { data: removed, error: rollbackError } = await supabase.from('bookings').delete().eq('booking_id', generatedBookingId).select('booking_id').maybeSingle();
+          if (rollbackError || !removed) throw new Error(`มีรายการจอง #${generatedBookingId} แล้ว แต่บันทึกผู้เดินทางไม่ครบ กรุณาติดต่อผู้ดูแลก่อนจองซ้ำ`);
+          setBookingRefId('');
+          throw new Error('บันทึกผู้เดินทางไม่สำเร็จ และยกเลิกรายการที่เพิ่งสร้างแล้ว กรุณาตรวจสอบข้อมูลก่อนลองใหม่');
         }
       }
 
       if (selectedDate && (tourPackage?.package_id || packageId)) {
         const currentPkgId = tourPackage?.package_id || packageId;
-        const { data: schCurrent } = await supabase.from('Tour_Schedules').select('schedule_id, booked_count').eq('package_id', currentPkgId).eq('travel_date', selectedDate).maybeSingle();
+        const { data: schCurrent, error: scheduleError } = await supabase.from('Tour_Schedules').select('schedule_id, booked_count').eq('package_id', currentPkgId).eq('travel_date', selectedDate).maybeSingle();
 
+        if (scheduleError || !schCurrent) { setFormError(`มีรายการจอง #${generatedBookingId} แล้ว แต่ตรวจรอบเดินทางไม่ได้ กรุณาติดต่อผู้ดูแลก่อนจองซ้ำ`); return; }
         if (schCurrent) {
           const currentBooked = Number(schCurrent.booked_count || 0);
           const newBooked = currentBooked + Number(totalPassengers);
-          await supabase.from('Tour_Schedules').update({ booked_count: newBooked }).eq('schedule_id', schCurrent.schedule_id);
+          const { data: changedSchedule, error: capacityError } = await supabase.from('Tour_Schedules').update({ booked_count: newBooked }).eq('schedule_id', schCurrent.schedule_id).select('schedule_id').maybeSingle();
+          if (capacityError || !changedSchedule) {
+            setFormError(`สร้างการจอง #${generatedBookingId} แล้ว แต่บันทึกจำนวนที่นั่งไม่ได้ กรุณาติดต่อผู้ดูแลก่อนจองซ้ำ`);
+            return;
+          }
         }
       }
 
@@ -251,17 +261,18 @@ export default function Booking() {
     try {
       let slipFileName = null;
       if (slipFile) {
-        const fileExt = slipFile.name.split('.').pop();
+        await validateImage(slipFile);
+        const fileExt = ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'})[slipFile.type];
         slipFileName = `slip_${bookingRefId}_${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('slips').upload(slipFileName, slipFile, { upsert: true });
+        const { error: uploadError } = await supabase.storage.from('slips').upload(slipFileName, slipFile, { upsert: false, contentType: slipFile.type });
         if (uploadError) throw new Error(`อัปโหลดสลิปไม่สำเร็จ: ${uploadError.message}`);
       }
 
       const updateData = { booking_status: 'รอตรวจสอบยอด' };
       if (slipFileName) updateData.slip = slipFileName;
 
-      const { error: updateBookingError } = await supabase.from('bookings').update(updateData).eq('booking_id', Number(bookingRefId));
-      if (updateBookingError) throw new Error(`อัปเดตสถานะการจองไม่สำเร็จ: ${updateBookingError.message}`);
+      const { data: updatedBooking, error: updateBookingError } = await supabase.from('bookings').update(updateData).eq('booking_id', bookingRefId).select('booking_id').maybeSingle();
+      requireChangedRow({data:updatedBooking,error:updateBookingError}, 'อัปเดตสถานะการจองไม่ได้ กรุณาตรวจสอบสิทธิ์กับผู้ดูแล');
 
       setCurrentStep(4);
     } catch (err) {
@@ -510,7 +521,7 @@ export default function Booking() {
 
             <div style={{ textAlign: 'left', marginBottom: '18px' }}>
               <label style={{ fontSize: '12px', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>แนบสลิปการโอนเงิน (Slip):</label>
-              <input type="file" accept="image/*" onChange={(e) => { setSlipFile(e.target.files?.[0] || null); if (formError) setFormError(''); }} style={{ ...inputStyle, padding: '8px' }} />
+              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { setSlipFile(e.target.files?.[0] || null); if (formError) setFormError(''); }} style={{ ...inputStyle, padding: '8px' }} />
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>

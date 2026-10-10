@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../client';
+import PrivateDocumentImage from '../components/PrivateDocumentImage';
+import { validateImage } from '../lib/privateDocuments';
 
 const COLORS = {
   red: '#e7191f',
@@ -513,17 +515,18 @@ export default function AdminDashboard() {
   };
 
   const uploadImageToStorage = async (file, prefix) => {
-    const fileExt = file.name.split('.').pop();
+    await validateImage(file);
+    const fileExt = ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'})[file.type];
     const cleanFileName = `${prefix}_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
     const filePath = `itineraries/${cleanFileName}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('slips')
-      .upload(filePath, file, { cacheControl: '3600', upsert: true });
+      .from('tourist_images')
+      .upload(filePath, file, { cacheControl: '3600', upsert: false, contentType: file.type });
 
     if (uploadError) throw uploadError;
 
-    const { data: publicUrlData } = supabase.storage.from('slips').getPublicUrl(filePath);
+    const { data: publicUrlData } = supabase.storage.from('tourist_images').getPublicUrl(filePath);
     return publicUrlData?.publicUrl || '';
   };
 
@@ -1033,12 +1036,7 @@ export default function AdminDashboard() {
                               <button
                                 type="button"
                                 onClick={() => {
-                                  if (b.slip.startsWith('http')) {
-                                    setPreviewSlipUrl(b.slip);
-                                  } else {
-                                    const { data: pubData } = supabase.storage.from('slips').getPublicUrl(b.slip);
-                                    setPreviewSlipUrl(pubData?.publicUrl || b.slip);
-                                  }
+                                  setPreviewSlipUrl(b.slip);
                                 }}
                                 style={{
                                   backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', color: '#059669',
@@ -1568,7 +1566,7 @@ export default function AdminDashboard() {
                       <label style={labelStyle}>รูปภาพหน้าปกแพ็กเกจ (URL หรือ อัปโหลด)</label>
                       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         <input type="text" value={editingPkg.image_path || ''} onChange={(e) => setEditingPkg({ ...editingPkg, image_path: e.target.value })} style={{ ...inputStyle, flex: 1 }} />
-                        <input type="file" id="edit-cover-upload" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+                        <input type="file" id="edit-cover-upload" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={async (e) => {
                           if (e.target.files && e.target.files[0]) {
                             setSavingPkg(true);
                             try {
@@ -1714,7 +1712,7 @@ export default function AdminDashboard() {
                                 </div>
                                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <input type="file" id={`itin-f-${index}`} accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+                                    <input type="file" id={`itin-f-${index}`} accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={async (e) => {
                                       if (e.target.files && e.target.files[0]) {
                                         setUploadingIndex(index);
                                         try {
@@ -1865,7 +1863,7 @@ export default function AdminDashboard() {
                   <label style={labelStyle}>รูปภาพหน้าปกแพ็กเกจ (URL หรือ อัปโหลด)</label>
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <input type="text" placeholder="https://..." value={newPkgForm.image_path} onChange={(e) => setNewPkgForm({ ...newPkgForm, image_path: e.target.value })} style={{ ...inputStyle, flex: 1 }} />
-                    <input type="file" id="main-cover-upload" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+                    <input type="file" id="main-cover-upload" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={async (e) => {
                       if (e.target.files && e.target.files[0]) {
                         setUploadingMainCover(true);
                         try {
@@ -2022,7 +2020,7 @@ export default function AdminDashboard() {
                           </div>
                           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <input type="file" id={`new-itin-f-${index}`} accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+                              <input type="file" id={`new-itin-f-${index}`} accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={async (e) => {
                                 if (e.target.files && e.target.files[0]) {
                                   setUploadingIndex(index);
                                   try {
@@ -2164,8 +2162,7 @@ export default function AdminDashboard() {
                     type="button"
                     onClick={() => {
                       const url = selectedRefundDetail.book_bank_url;
-                      const fullUrl = url.startsWith('http') ? url : supabase.storage.from('slips').getPublicUrl(url).data?.publicUrl;
-                      setPreviewBookBankUrl(fullUrl);
+                      setPreviewBookBankUrl(url);
                     }}
                     style={{ backgroundColor: '#db2777', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
                   >
@@ -2191,8 +2188,7 @@ export default function AdminDashboard() {
                       <button
                         type="button"
                         onClick={() => {
-                          const fullUrl = slipVal.startsWith('http') ? slipVal : supabase.storage.from('slips').getPublicUrl(slipVal).data?.publicUrl;
-                          setPreviewSlipUrl(fullUrl);
+                          setPreviewSlipUrl(slipVal);
                         }}
                         style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
                       >
@@ -2315,12 +2311,7 @@ export default function AdminDashboard() {
                   <button
                     type="button"
                     onClick={() => {
-                      if (selectedBookingDetail.slip.startsWith('http')) {
-                        setPreviewSlipUrl(selectedBookingDetail.slip);
-                      } else {
-                        const { data: pubData } = supabase.storage.from('slips').getPublicUrl(selectedBookingDetail.slip);
-                        setPreviewSlipUrl(pubData?.publicUrl || selectedBookingDetail.slip);
-                      }
+                      setPreviewSlipUrl(selectedBookingDetail.slip);
                     }}
                     style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
                   >
@@ -2384,7 +2375,7 @@ export default function AdminDashboard() {
         <div onClick={() => setPreviewSlipUrl(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10005, padding: '20px' }}>
           <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '20px', padding: '20px', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 25px 50px rgba(0,0,0,0.3)' }}>
             <h3 style={{ margin: '0 0 12px 0', color: COLORS.brown }}>หลักฐานการโอนเงิน (Slip)</h3>
-            <img src={previewSlipUrl} alt="Slip" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '12px' }} />
+            <PrivateDocumentImage value={previewSlipUrl} alt="Slip" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '12px' }} />
             <button onClick={() => setPreviewSlipUrl(null)} style={{ marginTop: '16px', backgroundColor: COLORS.brown, color: '#ffffff', border: 'none', padding: '8px 24px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' }}>ปิดหน้าต่าง</button>
           </div>
         </div>
@@ -2395,7 +2386,7 @@ export default function AdminDashboard() {
         <div onClick={() => setPreviewBookBankUrl(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10006, padding: '20px' }}>
           <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '20px', padding: '20px', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 25px 50px rgba(0,0,0,0.3)' }}>
             <h3 style={{ margin: '0 0 12px 0', color: COLORS.brown, fontSize: '16px' }}>หลักฐานสมุดบัญชี (Book Bank)</h3>
-            <img src={previewBookBankUrl} alt="Book Bank" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '12px' }} />
+            <PrivateDocumentImage value={previewBookBankUrl} alt="Book Bank" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '12px' }} />
             <button type="button" onClick={() => setPreviewBookBankUrl(null)} style={{ marginTop: '16px', backgroundColor: COLORS.brown, color: '#ffffff', border: 'none', padding: '8px 24px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' }}>ปิดหน้าต่าง</button>
           </div>
         </div>

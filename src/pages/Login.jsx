@@ -120,38 +120,6 @@ export default function Login() {
           throw signUpError;
         }
 
-        /* =========================
-           INSERT USER PROFILE
-        ========================= */
-
-        if (data?.user) {
-          const { error: userInsertError } =
-            await supabase
-              .from('users')
-              .insert([
-                {
-                  auth_id: data.user.id,
-
-                  username:
-                    fullName.trim() ||
-                    email.split('@')[0],
-
-                  email: email.trim(),
-
-                  role: 'customer',
-
-                  imagee: null,
-                },
-              ]);
-
-          if (userInsertError) {
-            console.error(
-              'User profile insert error:',
-              userInsertError
-            );
-          }
-        }
-
         triggerToast(
           `ยินดีต้อนรับคุณ ${
             fullName || email

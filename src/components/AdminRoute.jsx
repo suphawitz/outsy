@@ -10,18 +10,17 @@ export default function AdminRoute({ children }) {
     async function checkAdminRole() {
       try {
         // 1. เช็กว่าผู้ใช้เข้าสู่ระบบหรือยัง
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
           navigate('/login');
           return;
         }
 
-        // 2. ตรวจสอบสิทธิ์จากตาราง users โดยเทียบจากอีเมลหรือ auth_id
-        const userEmail = session.user.email;
+        // 2. ตรวจสอบสิทธิ์จากโปรไฟล์ที่ผูกกับบัญชี Auth
         const { data: userData, error } = await supabase
           .from('users')
           .select('role')
-          .ilike('email', userEmail)
+          .eq('auth_id', user.id)
           .maybeSingle();
 
         if (error || !userData || (userData.role !== 'Admin' && userData.role !== 'admin')) {
