@@ -790,7 +790,7 @@ export default function AdminDashboard() {
   });
 
   return (
-    <div style={{
+    <div className="outsy-page page-admindashboard" style={{
       backgroundColor: COLORS.bg,
       minHeight: '100vh',
       padding: '110px 0 80px 0',
@@ -811,10 +811,10 @@ export default function AdminDashboard() {
         </div>
 
         {/* เลย์เอาต์หลัก */}
-        <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '32px', alignItems: 'start', width: '100%', margin: 0 }}>
+        <div className="responsive-grid page-columns" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '32px', alignItems: 'start', width: '100%', margin: 0 }}>
           
           {/* Sidebar */}
-          <div style={{
+          <div className="responsive-sticky responsive-panel" style={{
             backgroundColor: '#ffffff',
             borderRadius: '0 24px 24px 0',
             padding: '24px 16px',
@@ -888,7 +888,7 @@ export default function AdminDashboard() {
                     fontSize: '13px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span style={{ fontSize: '16px' }}>📋</span>
                     <span>รายการจอง & สลิป</span>
                   </div>
@@ -950,12 +950,12 @@ export default function AdminDashboard() {
           </div>
 
           {/* ส่วนเนื้อหาหลักทางด้านขวา */}
-          <div style={{ paddingRight: '32px' }}>
+          <div className="admin-content" style={{ paddingRight: '32px' }}>
 
             {/* แท็บ 1: รายการจอง */}
             {activeTab === 'bookings' && (
               <div>
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '18px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div className="responsive-row" style={{ display: 'flex', gap: '8px', marginBottom: '18px', alignItems: 'center', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '12px', color: COLORS.textMuted, fontWeight: 'bold' }}>สถานะ:</span>
                   {['ทั้งหมด', 'รอตรวจสอบยอด', 'รอชำระเงิน', 'ชำระเงินแล้ว'].map((st) => (
                     <button
@@ -980,7 +980,7 @@ export default function AdminDashboard() {
                 {loadingBookings ? (
                   <div style={{ textAlign: 'center', padding: '60px', color: COLORS.textMuted }}>กำลังโหลดรายการจอง...</div>
                 ) : filteredBookings.length === 0 ? (
-                  <div style={{ backgroundColor: COLORS.card, borderRadius: '20px', padding: '50px', textAlign: 'center', border: `1.5px solid ${COLORS.border}` }}>
+                  <div className="responsive-panel" style={{ backgroundColor: COLORS.card, borderRadius: '20px', padding: '50px', textAlign: 'center', border: `1.5px solid ${COLORS.border}` }}>
                     <div style={{ fontSize: '40px', marginBottom: '8px' }}>📭</div>
                     <div style={{ fontWeight: 'bold', color: COLORS.brown }}>ไม่พบรายการจองในหมวดนี้</div>
                   </div>
@@ -990,7 +990,7 @@ export default function AdminDashboard() {
                       const travelers = b.travelers || [];
 
                       return (
-                        <div
+                        <div className="responsive-grid responsive-panel"
                           key={b.booking_id}
                           style={{
                             backgroundColor: COLORS.card, borderRadius: '18px', border: `1.5px solid ${COLORS.border}`,
@@ -998,15 +998,15 @@ export default function AdminDashboard() {
                           }}
                         >
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                               <strong style={{ fontSize: '15px', color: COLORS.brown }}>#{b.booking_id}</strong>
                               <span style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>{b.package_id}</span>
                             </div>
 
-                            <div style={{ backgroundColor: '#f8fafc', border: `1px solid ${COLORS.border}`, borderRadius: '10px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', border: `1px solid ${COLORS.border}`, borderRadius: '10px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                               {travelers.length > 0 ? (
                                 travelers.map((t, idx) => (
-                                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                                  <div className="responsive-row" key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
                                     <span style={{ width: '18px', height: '18px', borderRadius: '50%', backgroundColor: idx === 0 ? '#ffe8a3' : '#dff5f2', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold', flexShrink: 0 }}>
                                       {idx + 1}
                                     </span>
@@ -1055,7 +1055,7 @@ export default function AdminDashboard() {
                           </div>
 
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                            <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                               {b.booking_status !== 'ชำระเงินแล้ว' && (
                                 <button
                                   type="button"
@@ -1106,25 +1106,25 @@ export default function AdminDashboard() {
 
             {/* แท็บ: ปฏิทินสรุปยอดจองรายวัน */}
             {activeTab === 'calendar' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px', alignItems: 'start' }}>
+              <div className="responsive-grid page-columns" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px', alignItems: 'start' }}>
                 
                 {/* ฝั่งซ้าย: ปฏิทินรายเดือน */}
-                <div style={{ backgroundColor: COLORS.card, borderRadius: '24px', padding: '24px', border: `1.5px solid ${COLORS.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+                <div className="responsive-panel" style={{ backgroundColor: COLORS.card, borderRadius: '24px', padding: '24px', border: `1.5px solid ${COLORS.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                  <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
                     <h3 style={{ fontSize: '16px', fontWeight: '900', margin: 0, color: COLORS.brown }}>
                       📅 ปฏิทินทัวร์ {monthNamesTh[currentYearMonth.month]} {currentYearMonth.year + 543}
                     </h3>
-                    <div style={{ display: 'flex', gap: '6px' }}>
+                    <div className="responsive-row" style={{ display: 'flex', gap: '6px' }}>
                       <button onClick={handlePrevMonth} style={{ backgroundColor: '#f1f5f9', border: 'none', padding: '5px 10px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>◀</button>
                       <button onClick={handleNextMonth} style={{ backgroundColor: '#f1f5f9', border: 'none', padding: '5px 10px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>▶</button>
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px', textAlign: 'center', fontSize: '12px', fontWeight: 'bold', color: COLORS.textMuted, marginBottom: '8px' }}>
+                  <div className="calendar-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px', textAlign: 'center', fontSize: '12px', fontWeight: 'bold', color: COLORS.textMuted, marginBottom: '8px' }}>
                     <div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
+                  <div className="calendar-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
                     {(() => {
                       const daysInMonth = getDaysInMonth(currentYearMonth.year, currentYearMonth.month);
                       const firstDay = getFirstDayOfMonth(currentYearMonth.year, currentYearMonth.month);
@@ -1147,7 +1147,7 @@ export default function AdminDashboard() {
                         const hasTour = daySchedules.length > 0;
 
                         cells.push(
-                          <div
+                          <div className="responsive-panel"
                             key={dateString}
                             onClick={() => {
                               if (!isPast) {
@@ -1173,7 +1173,7 @@ export default function AdminDashboard() {
                               {day}
                             </div>
                             {hasTour && (
-                              <div style={{ backgroundColor: COLORS.cyan, color: '#013a3d', fontSize: '9px', fontWeight: 'bold', padding: '2px', borderRadius: '4px', textAlign: 'center' }}>
+                              <div className="responsive-panel" style={{ backgroundColor: COLORS.cyan, color: '#013a3d', fontSize: '9px', fontWeight: 'bold', padding: '2px', borderRadius: '4px', textAlign: 'center' }}>
                                 🚐 {daySchedules.length} ทริป
                               </div>
                             )}
@@ -1186,23 +1186,23 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* ฝั่งขวา: รายละเอียดแพ็กเกจ และ รายชื่อลูกค้า */}
-                <div style={{ backgroundColor: COLORS.card, borderRadius: '24px', padding: '24px', border: `1.5px solid ${COLORS.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                <div className="responsive-panel" style={{ backgroundColor: COLORS.card, borderRadius: '24px', padding: '24px', border: `1.5px solid ${COLORS.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
                   
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: `1.5px solid ${COLORS.border}`, paddingBottom: '10px' }}>
+                  <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: `1.5px solid ${COLORS.border}`, paddingBottom: '10px' }}>
                     <div>
                       <span style={{ fontSize: '11px', color: COLORS.textMuted, fontWeight: 'bold' }}>วันที่เลือกดูข้อมูล:</span>
                       <h3 style={{ fontSize: '15px', fontWeight: '900', color: COLORS.red, margin: '2px 0 0 0' }}>
                         📅 {activeCalendarDate}
                       </h3>
                     </div>
-                    <div style={{ backgroundColor: '#f1f5f9', padding: '4px 10px', borderRadius: '10px', fontSize: '11px', fontWeight: 'bold', color: COLORS.brown }}>
+                    <div className="responsive-panel" style={{ backgroundColor: '#f1f5f9', padding: '4px 10px', borderRadius: '10px', fontSize: '11px', fontWeight: 'bold', color: COLORS.brown }}>
                       {filteredDateBookings.length} การจอง
                     </div>
                   </div>
 
                   {/* เลือกดูตามเลขแพ็กเกจ */}
                   <div style={{ marginBottom: '14px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                       <span style={{ fontSize: '12px', fontWeight: 'bold', color: COLORS.brown }}>
                         ✨ เลือกดูตามรหัสแพ็กเกจทัวร์:
                       </span>
@@ -1214,7 +1214,7 @@ export default function AdminDashboard() {
                     </div>
 
                     {currentDaySchedules.length === 0 ? (
-                      <div style={{ fontSize: '12px', color: COLORS.textMuted, backgroundColor: '#f8fafc', padding: '10px', borderRadius: '10px', border: `1.5px dashed ${COLORS.border}` }}>
+                      <div className="responsive-panel" style={{ fontSize: '12px', color: COLORS.textMuted, backgroundColor: '#f8fafc', padding: '10px', borderRadius: '10px', border: `1.5px dashed ${COLORS.border}` }}>
                         ไม่มีรอบออกเดินทางในวันนี้
                       </div>
                     ) : (
@@ -1235,7 +1235,7 @@ export default function AdminDashboard() {
                           const showCancelWarning = actualPeopleBooked > 0 && isUnderMin && diffDays <= 3 && diffDays >= 0;
 
                           return (
-                            <div
+                            <div className="responsive-panel"
                               key={sch.schedule_id}
                               style={{
                                 backgroundColor: isPkgSelected ? '#fffdf0' : '#ffffff',
@@ -1246,7 +1246,7 @@ export default function AdminDashboard() {
                               }}
                             >
                               <div onClick={() => setSelectedPkgFilter(isPkgSelected ? 'ALL' : sch.package_id)} style={{ cursor: 'pointer' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                   <span style={{ backgroundColor: COLORS.yellow, color: COLORS.brown, fontSize: '10px', fontWeight: '900', padding: '2px 6px', borderRadius: '4px' }}>
                                     {sch.package_id}
                                   </span>
@@ -1297,13 +1297,13 @@ export default function AdminDashboard() {
                   </div>
 
                   {filteredDateBookings.length === 0 ? (
-                    <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '16px', textAlign: 'center', color: COLORS.textMuted, border: `1.5px dashed ${COLORS.border}`, fontSize: '12px' }}>
+                    <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '16px', textAlign: 'center', color: COLORS.textMuted, border: `1.5px dashed ${COLORS.border}`, fontSize: '12px' }}>
                       ยังไม่มีลูกค้าจองในวันนี้
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '240px', overflowY: 'auto' }}>
                       {filteredDateBookings.map((b) => (
-                        <div
+                        <div className="responsive-panel"
                           key={b.booking_id}
                           onClick={() => setSelectedBookingDetail(b)}
                           style={{
@@ -1311,7 +1311,7 @@ export default function AdminDashboard() {
                             border: `1.5px solid ${COLORS.border}`, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '2px'
                           }}
                         >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ fontSize: '12px', fontWeight: 'bold', color: COLORS.brown }}>
                               #{b.booking_id} • {b.customer_name}
                             </span>
@@ -1319,7 +1319,7 @@ export default function AdminDashboard() {
                               {b.number_people} ท่าน
                             </span>
                           </div>
-                          <div style={{ fontSize: '11px', color: COLORS.textMuted, display: 'flex', justifyContent: 'space-between' }}>
+                          <div className="responsive-row" style={{ fontSize: '11px', color: COLORS.textMuted, display: 'flex', justifyContent: 'space-between' }}>
                             <span>{b.package_id}</span>
                             <span style={{ color: '#059669', fontWeight: 'bold' }}>{b.booking_status}</span>
                           </div>
@@ -1335,18 +1335,18 @@ export default function AdminDashboard() {
 
             {/* แท็บใหม่: หน้าเปลี่ยนวันเดินทางให้ลูกค้า */}
             {activeTab === 'reschedule' && (
-              <div style={{ backgroundColor: COLORS.card, borderRadius: '24px', padding: '28px', border: `1.5px solid ${COLORS.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+              <div className="responsive-panel" style={{ backgroundColor: COLORS.card, borderRadius: '24px', padding: '28px', border: `1.5px solid ${COLORS.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
                 <h3 style={{ fontSize: '18px', fontWeight: '900', margin: '0 0 6px 0', color: COLORS.brown }}>🔄 เปลี่ยนวันเดินทางให้ลูกค้า</h3>
                 <p style={{ fontSize: '13px', color: COLORS.textMuted, margin: '0 0 20px 0' }}>รายการจองที่ลูกค้ากดขอเปลี่ยนวันเข้ามาหลังจากทัวร์ถูกยกเลิก</p>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {bookings.filter(b => b.booking_status === 'ขอเปลี่ยนวันเดินทาง').length === 0 ? (
-                    <div style={{ padding: '40px', textAlign: 'center', color: COLORS.textMuted, backgroundColor: '#f8fafc', borderRadius: '16px', border: `1.5px dashed ${COLORS.border}` }}>
+                    <div className="responsive-panel" style={{ padding: '40px', textAlign: 'center', color: COLORS.textMuted, backgroundColor: '#f8fafc', borderRadius: '16px', border: `1.5px dashed ${COLORS.border}` }}>
                       ไม่มีคำขอเปลี่ยนวันเดินทางในขณะนี้
                     </div>
                   ) : (
                     bookings.filter(b => b.booking_status === 'ขอเปลี่ยนวันเดินทาง').map(b => (
-                      <div key={b.booking_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderRadius: '16px', border: '1.5px solid #a7f3d0', backgroundColor: '#f0fdf4', gap: '16px', flexWrap: 'wrap' }}>
+                      <div className="responsive-row responsive-panel" key={b.booking_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderRadius: '16px', border: '1.5px solid #a7f3d0', backgroundColor: '#f0fdf4', gap: '16px', flexWrap: 'wrap' }}>
                         <div>
                           <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#065f46' }}>#{b.booking_id} • {b.customer_name} ({b.package_id})</div>
                           <div style={{ fontSize: '12px', color: '#047857', marginTop: '2px' }}>
@@ -1380,13 +1380,13 @@ export default function AdminDashboard() {
 
             {/* แท็บใหม่: หน้าจัดการคืนเงิน (Refund) พร้อมปุ่ม "คืนเงินเรียบร้อยแล้ว" และปุ่มลบ */}
             {activeTab === 'refund' && (
-              <div style={{ backgroundColor: COLORS.card, borderRadius: '24px', padding: '28px', border: `1.5px solid ${COLORS.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+              <div className="responsive-panel" style={{ backgroundColor: COLORS.card, borderRadius: '24px', padding: '28px', border: `1.5px solid ${COLORS.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
                 <h3 style={{ fontSize: '18px', fontWeight: '900', margin: '0 0 6px 0', color: COLORS.brown }}>💸 จัดการคืนเงิน (Refund) ให้ลูกค้า</h3>
                 <p style={{ fontSize: '13px', color: COLORS.textMuted, margin: '0 0 20px 0' }}>ข้อมูลบัญชีธนาคารและหลักฐานสมุดบัญชี (Book Bank) ที่ลูกค้ากรอกเข้ามา</p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   {refundRequests.length === 0 ? (
-                    <div style={{ padding: '40px', textAlign: 'center', color: COLORS.textMuted, backgroundColor: '#f8fafc', borderRadius: '16px', border: `1.5px dashed ${COLORS.border}` }}>
+                    <div className="responsive-panel" style={{ padding: '40px', textAlign: 'center', color: COLORS.textMuted, backgroundColor: '#f8fafc', borderRadius: '16px', border: `1.5px dashed ${COLORS.border}` }}>
                       ไม่มีคำขอคืนเงินในขณะนี้
                     </div>
                   ) : (
@@ -1395,12 +1395,12 @@ export default function AdminDashboard() {
                       const isRefunded = req.status === 'คืนเงินแล้ว';
 
                       return (
-                        <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderRadius: '16px', border: '1.5px solid #fecaca', backgroundColor: '#fff5f5', gap: '16px', flexWrap: 'wrap' }}>
+                        <div className="responsive-row responsive-panel" key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderRadius: '16px', border: '1.5px solid #fecaca', backgroundColor: '#fff5f5', gap: '16px', flexWrap: 'wrap' }}>
                           <div onClick={() => setSelectedRefundDetail(req)} style={{ flex: 1, cursor: 'pointer', minWidth: '220px' }}>
                             <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#991b1b' }}>#{req.booking_id} • {req.account_name} ({req.bank_name})</div>
                             <div style={{ fontSize: '12px', color: '#7f1d1d', marginTop: '2px' }}>เลขบัญชี: <b>{req.account_no}</b> | ยอดคืน: <b style={{ color: COLORS.red }}>฿{Number(relatedBooking?.total_price || req.bookings?.total_price || 0).toLocaleString()}</b></div>
                           </div>
-                          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <div className="responsive-row" style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                             <span style={{ fontSize: '11px', fontWeight: 'bold', color: isRefunded ? '#059669' : '#d97706', backgroundColor: '#fff', padding: '4px 10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>{req.status}</span>
                             
                             <button type="button" onClick={() => setSelectedRefundDetail(req)} style={{ fontSize: '12px', fontWeight: 'bold', color: COLORS.brown, backgroundColor: '#fff', padding: '6px 14px', borderRadius: '10px', border: `1.5px solid ${COLORS.border}`, cursor: 'pointer' }}>คลิกดูรายละเอียด →</button>
@@ -1425,11 +1425,11 @@ export default function AdminDashboard() {
             {activeTab === 'schedules' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 
-                <div style={{ backgroundColor: COLORS.card, borderRadius: '24px', padding: '24px', border: `1.5px solid ${COLORS.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                <div className="responsive-panel" style={{ backgroundColor: COLORS.card, borderRadius: '24px', padding: '24px', border: `1.5px solid ${COLORS.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
                   <h3 style={{ fontSize: '15px', fontWeight: 'bold', margin: '0 0 14px 0', color: COLORS.brown }}>📦 เลือกแพ็กเกจที่ต้องการจัดการ</h3>
-                  <div style={{ 
+                  <div className="responsive-grid" style={{
                     display: 'grid', 
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 200px), 1fr))',
                     gap: '12px',
                     maxHeight: '220px',
                     overflowY: 'auto',
@@ -1438,7 +1438,7 @@ export default function AdminDashboard() {
                     {packagesList.map((pkg) => {
                       const isSelected = pkg.package_id === selectedPkgId;
                       return (
-                        <div
+                        <div className="responsive-panel"
                           key={pkg.package_id}
                           onClick={() => setSelectedPkgId(pkg.package_id)}
                           style={{
@@ -1449,7 +1449,7 @@ export default function AdminDashboard() {
                             transition: 'all 0.15s ease'
                           }}
                         >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                          <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
                             <span style={{ fontSize: '11px', fontWeight: '900', color: COLORS.brown }}>{pkg.package_id}</span>
                             <span style={{ fontSize: '12px', fontWeight: '900', color: COLORS.red }}>฿{Number(pkg.price).toLocaleString()}</span>
                           </div>
@@ -1462,12 +1462,12 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                <div style={{ backgroundColor: COLORS.card, borderRadius: '24px', padding: '24px', border: `1.5px solid ${COLORS.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                <div className="responsive-panel" style={{ backgroundColor: COLORS.card, borderRadius: '24px', padding: '24px', border: `1.5px solid ${COLORS.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
                   <h3 style={{ fontSize: '15px', fontWeight: 'bold', margin: '0 0 14px 0', color: COLORS.brown }}>
                     📅 จัดการรอบวันเดินทาง: <span style={{ color: COLORS.cyan }}>{selectedPkgId}</span>
                   </h3>
 
-                  <form onSubmit={handleAddSchedule} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr auto', gap: '12px', alignItems: 'end', marginBottom: '20px', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '16px', border: `1.5px solid ${COLORS.border}` }}>
+                  <form className="responsive-grid responsive-panel" onSubmit={handleAddSchedule} style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr auto', gap: '12px', alignItems: 'end', marginBottom: '20px', padding: '16px', backgroundColor: '#f8fafc', borderRadius: '16px', border: `1.5px solid ${COLORS.border}` }}>
                     <div>
                       <label style={subLabelStyle}>เพิ่มรอบวันที่เดินทางใหม่ *</label>
                       <input type="date" required min={new Date().toISOString().split('T')[0]} value={newTravelDate} onChange={(e) => setNewTravelDate(e.target.value)} style={miniInputStyle} />
@@ -1481,9 +1481,9 @@ export default function AdminDashboard() {
                     </button>
                   </form>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+                  <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 200px), 1fr))', gap: '10px' }}>
                     {pkgSchedules.map((sch) => (
-                      <div key={sch.schedule_id} style={{ padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff' }}>
+                      <div className="responsive-row responsive-panel" key={sch.schedule_id} style={{ padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff' }}>
                         <div>
                           <div style={{ fontWeight: 'bold', fontSize: '13px', color: COLORS.brown }}>📅 {sch.travel_date}</div>
                           <div style={{ fontSize: '11px', color: COLORS.textMuted }}>จองแล้ว: {sch.booked_count || 0}/{sch.max_capacity || 10} ท่าน</div>
@@ -1495,7 +1495,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {editingPkg && (
-                  <form onSubmit={handleSavePackageAndItinerary} style={{ backgroundColor: COLORS.card, borderRadius: '24px', padding: '32px', border: `1.5px solid ${COLORS.border}`, display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                  <form className="responsive-panel" onSubmit={handleSavePackageAndItinerary} style={{ backgroundColor: COLORS.card, borderRadius: '24px', padding: '32px', border: `1.5px solid ${COLORS.border}`, display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
                     <div style={{ borderBottom: `1.5px solid ${COLORS.border}`, paddingBottom: '14px' }}>
                       <h3 style={{ fontSize: '18px', fontWeight: '900', margin: 0, color: COLORS.brown }}>
                         ✏️ แก้ไขข้อมูลแพ็กเกจ & ตารางกำหนดการ: <span style={{ color: COLORS.cyan }}>{editingPkg.package_id}</span>
@@ -1507,7 +1507,7 @@ export default function AdminDashboard() {
                       <input type="text" value={editingPkg.package_name || ''} onChange={(e) => setEditingPkg({ ...editingPkg, package_name: e.target.value })} style={inputStyle} />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                       <div>
                         <label style={labelStyle}>ราคาต่อท่าน (บาท)</label>
                         <input type="number" value={editingPkg.price || ''} onChange={(e) => setEditingPkg({ ...editingPkg, price: e.target.value })} style={inputStyle} />
@@ -1522,7 +1522,7 @@ export default function AdminDashboard() {
                       <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '8px', color: COLORS.brown }}>
                         ✨ หมวดหมู่สายมู (เลือกได้หลายข้อ)
                       </label>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '14px', border: `1.5px solid ${COLORS.border}` }}>
+                      <div className="responsive-grid responsive-panel" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '14px', border: `1.5px solid ${COLORS.border}` }}>
                         {CATEGORIES_LIST.map((cat) => {
                           const currentCats = editingPkg.categories || [];
                           const isChecked = currentCats.includes(cat);
@@ -1564,7 +1564,7 @@ export default function AdminDashboard() {
 
                     <div>
                       <label style={labelStyle}>รูปภาพหน้าปกแพ็กเกจ (URL หรือ อัปโหลด)</label>
-                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <div className="responsive-row" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         <input type="text" value={editingPkg.image_path || ''} onChange={(e) => setEditingPkg({ ...editingPkg, image_path: e.target.value })} style={{ ...inputStyle, flex: 1 }} />
                         <input type="file" id="edit-cover-upload" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={async (e) => {
                           if (e.target.files && e.target.files[0]) {
@@ -1587,7 +1587,7 @@ export default function AdminDashboard() {
 
                     {/* ตาราง Itinerary */}
                     <div style={{ borderTop: `1.5px dashed ${COLORS.border}`, paddingTop: '18px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                      <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                         <label style={{ ...labelStyle, margin: 0, fontSize: '15px' }}>🧭 ตารางกำหนดการเดินทาง (Itinerary)</label>
                         <button type="button" onClick={() => setEditItineraries(prev => [...prev, { order_index: prev.length + 1, time_start: '', time_end: '', duration_text: '', title: '', location: '', blessing_aspect: '', highlight: '', activity_type: 'sightseeing', image_url: '' }])} style={{ backgroundColor: COLORS.cyan, color: '#013a3d', border: 'none', padding: '8px 16px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
                           + เพิ่มจุดแวะ
@@ -1599,8 +1599,8 @@ export default function AdminDashboard() {
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                           {editItineraries.map((point, index) => (
-                            <div key={index} style={{ padding: '18px', backgroundColor: '#f8fafc', borderRadius: '16px', border: `1.5px solid ${COLORS.border}`, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div className="responsive-panel" key={index} style={{ padding: '18px', backgroundColor: '#f8fafc', borderRadius: '16px', border: `1.5px solid ${COLORS.border}`, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ fontSize: '13px', fontWeight: '900', color: COLORS.brown }}>จุดที่ #{index + 1}</span>
                                 <button type="button" onClick={() => setEditItineraries(prev => prev.filter((_, idx) => idx !== index))} style={{ background: 'none', border: 'none', color: COLORS.red, cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>ลบจุดนี้ ✕</button>
                               </div>
@@ -1625,7 +1625,7 @@ export default function AdminDashboard() {
                                 </select>
                               </div>
 
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 2fr', gap: '10px' }}>
+                              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 2fr', gap: '10px' }}>
                                 <div>
                                   <label style={subLabelStyle}>🕒 เวลาเริ่ม</label>
                                   <input type="time" value={point.time_start || ''} onChange={(e) => {
@@ -1672,7 +1672,7 @@ export default function AdminDashboard() {
                                 </div>
                               </div>
 
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                                 <div>
                                   <label style={subLabelStyle}>📍 ที่ตั้ง</label>
                                   <input type="text" value={point.location || ''} onChange={(e) => {
@@ -1702,8 +1702,8 @@ export default function AdminDashboard() {
                                 </div>
                               </div>
 
-                              <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: `1.5px solid ${COLORS.border}`, padding: '12px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                                <div style={{ width: '65px', height: '65px', borderRadius: '10px', backgroundColor: '#f1f5f9', border: `1.5px solid ${COLORS.inputBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+                              <div className="responsive-row responsive-panel" style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: `1.5px solid ${COLORS.border}`, padding: '12px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                <div className="responsive-row" style={{ width: '65px', height: '65px', borderRadius: '10px', backgroundColor: '#f1f5f9', border: `1.5px solid ${COLORS.inputBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
                                   {point.image_url ? (
                                     <img src={point.image_url} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none'; }} />
                                   ) : (
@@ -1711,7 +1711,7 @@ export default function AdminDashboard() {
                                   )}
                                 </div>
                                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <input type="file" id={`itin-f-${index}`} accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={async (e) => {
                                       if (e.target.files && e.target.files[0]) {
                                         setUploadingIndex(index);
@@ -1771,15 +1771,15 @@ export default function AdminDashboard() {
 
             {/* แท็บ 3: สร้างแพ็กเกจใหม่ */}
             {activeTab === 'create_package' && (
-              <form onSubmit={handleCreateNewPackageSubmit} style={{ backgroundColor: COLORS.card, borderRadius: '24px', padding: '32px', border: `1.5px solid ${COLORS.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', borderBottom: `1.5px solid ${COLORS.border}`, paddingBottom: '14px' }}>
+              <form className="responsive-panel" onSubmit={handleCreateNewPackageSubmit} style={{ backgroundColor: COLORS.card, borderRadius: '24px', padding: '32px', border: `1.5px solid ${COLORS.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', borderBottom: `1.5px solid ${COLORS.border}`, paddingBottom: '14px' }}>
                   <span style={{ fontSize: '24px' }}>✨</span>
                   <h2 style={{ fontSize: '18px', fontWeight: '900', margin: 0, color: COLORS.brown }}>
                     สร้างแพ็กเกจทัวร์ One-Day Trip ใหม่
                   </h2>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px' }}>
+                <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px' }}>
                   <div>
                     <label style={labelStyle}>รหัสแพ็กเกจ (Package ID) *</label>
                     <input 
@@ -1804,7 +1804,7 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
                     <label style={labelStyle}>ราคาต่อท่าน (บาท) *</label>
                     <input type="number" required placeholder="1490" value={newPkgForm.price} onChange={(e) => setNewPkgForm({ ...newPkgForm, price: e.target.value })} style={inputStyle} />
@@ -1819,7 +1819,7 @@ export default function AdminDashboard() {
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '8px', color: COLORS.brown }}>
                     ✨ หมวดหมู่สายมู (เลือกได้หลายข้อ)
                   </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '14px', border: `1.5px solid ${COLORS.border}` }}>
+                  <div className="responsive-grid responsive-panel" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '14px', border: `1.5px solid ${COLORS.border}` }}>
                     {CATEGORIES_LIST.map((cat) => {
                       const currentCats = newPkgForm.categories || [];
                       const isChecked = currentCats.includes(cat);
@@ -1861,7 +1861,7 @@ export default function AdminDashboard() {
 
                 <div>
                   <label style={labelStyle}>รูปภาพหน้าปกแพ็กเกจ (URL หรือ อัปโหลด)</label>
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <div className="responsive-row" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <input type="text" placeholder="https://..." value={newPkgForm.image_path} onChange={(e) => setNewPkgForm({ ...newPkgForm, image_path: e.target.value })} style={{ ...inputStyle, flex: 1 }} />
                     <input type="file" id="main-cover-upload" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={async (e) => {
                       if (e.target.files && e.target.files[0]) {
@@ -1883,11 +1883,11 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* ส่วนเปิดรอบวันเดินทางเริ่มต้น */}
-                <div style={{ backgroundColor: '#f8fafc', padding: '16px 20px', borderRadius: '16px', border: `1.5px solid ${COLORS.border}` }}>
+                <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', padding: '16px 20px', borderRadius: '16px', border: `1.5px solid ${COLORS.border}` }}>
                   <div style={{ fontSize: '12px', fontWeight: 'bold', color: COLORS.brown, marginBottom: '10px' }}>
                     📅 เปิดรอบวันเดินทางเริ่มต้น (ไม่บังคับ)
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '14px' }}>
+                  <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '14px' }}>
                     <div>
                       <label style={subLabelStyle}>วันเดินทางรอบแรก</label>
                       <input type="date" value={newPkgForm.initial_date} onChange={(e) => setNewPkgForm({ ...newPkgForm, initial_date: e.target.value })} style={miniInputStyle} />
@@ -1901,14 +1901,14 @@ export default function AdminDashboard() {
 
                 {/* ตารางกำหนดการเดินทาง Itinerary */}
                 <div style={{ borderTop: `1.5px dashed ${COLORS.border}`, paddingTop: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                  <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                     <label style={{ ...labelStyle, margin: 0, fontSize: '15px' }}>🧭 ตารางกำหนดการเดินทาง (Itinerary)</label>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     {newPkgItineraries.map((point, index) => (
-                      <div key={index} style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '16px', border: `1.5px solid ${COLORS.border}`, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div className="responsive-panel" key={index} style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '16px', border: `1.5px solid ${COLORS.border}`, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ fontSize: '12px', fontWeight: 'bold', color: COLORS.brown }}>จุดแวะที่ #{index + 1}</span>
                           <button type="button" onClick={() => setNewPkgItineraries(prev => prev.filter((_, idx) => idx !== index))} style={{ background: 'none', border: 'none', color: COLORS.red, cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>ลบจุดนี้ ✕</button>
                         </div>
@@ -1933,7 +1933,7 @@ export default function AdminDashboard() {
                           </select>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '120px 120px 130px 1fr', gap: '8px' }}>
+                        <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '120px 120px 130px 1fr', gap: '8px' }}>
                           <div>
                             <label style={subLabelStyle}>🕒 เวลาเริ่ม</label>
                             <input type="time" value={point.time_start || ''} onChange={(e) => {
@@ -1980,7 +1980,7 @@ export default function AdminDashboard() {
                           </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                           <div>
                             <label style={subLabelStyle}>📍 ที่ตั้ง</label>
                             <input type="text" value={point.location || ''} onChange={(e) => {
@@ -2010,8 +2010,8 @@ export default function AdminDashboard() {
                           </div>
                         </div>
 
-                        <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: `1.5px solid ${COLORS.border}`, padding: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <div style={{ width: '60px', height: '60px', borderRadius: '8px', backgroundColor: '#f1f5f9', border: `1.5px solid ${COLORS.inputBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+                        <div className="responsive-row responsive-panel" style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: `1.5px solid ${COLORS.border}`, padding: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div className="responsive-row" style={{ width: '60px', height: '60px', borderRadius: '8px', backgroundColor: '#f1f5f9', border: `1.5px solid ${COLORS.inputBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
                             {point.image_url ? (
                               <img src={point.image_url} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none'; }} />
                             ) : (
@@ -2019,7 +2019,7 @@ export default function AdminDashboard() {
                             )}
                           </div>
                           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                               <input type="file" id={`new-itin-f-${index}`} accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={async (e) => {
                                 if (e.target.files && e.target.files[0]) {
                                   setUploadingIndex(index);
@@ -2080,7 +2080,7 @@ export default function AdminDashboard() {
                   </button>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '10px' }}>
+                <div className="responsive-row" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '10px' }}>
                   <button type="button" onClick={() => setActiveTab('schedules')} style={{ backgroundColor: 'transparent', border: `1.5px solid ${COLORS.border}`, color: COLORS.textMuted, padding: '12px 24px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
                     ยกเลิก
                   </button>
@@ -2099,10 +2099,10 @@ export default function AdminDashboard() {
 
       {/* MODAL: แสดงรายละเอียดการขอคืนเงิน (Refund Details) */}
       {selectedRefundDetail && (
-        <div onClick={() => setSelectedRefundDetail(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10003, padding: '20px' }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '24px', padding: '32px', maxWidth: '520px', width: '100%', boxShadow: '0 25px 50px rgba(0,0,0,0.15)', border: `1.5px solid ${COLORS.border}`, maxHeight: '90vh', overflowY: 'auto' }}>
+        <div className="responsive-modal responsive-row" onClick={() => setSelectedRefundDetail(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10003, padding: '20px' }}>
+          <div className="responsive-panel" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '24px', padding: '32px', maxWidth: '520px', width: '100%', boxShadow: '0 25px 50px rgba(0,0,0,0.15)', border: `1.5px solid ${COLORS.border}`, maxHeight: '90vh', overflowY: 'auto' }}>
             
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: `1.5px solid ${COLORS.border}`, paddingBottom: '14px' }}>
+            <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: `1.5px solid ${COLORS.border}`, paddingBottom: '14px' }}>
               <div>
                 <span style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '3px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: '900' }}>
                   คำขอคืนเงิน #{selectedRefundDetail.id} (การจอง #{selectedRefundDetail.booking_id})
@@ -2114,35 +2114,35 @@ export default function AdminDashboard() {
               <button type="button" onClick={() => setSelectedRefundDetail(null)} style={{ background: '#f1f5f9', border: 'none', width: '34px', height: '34px', borderRadius: '50%', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer', color: COLORS.textMuted }}>✕</button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px', fontSize: '13px' }}>
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
+            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px', fontSize: '13px' }}>
+              <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
                 <div style={{ fontSize: '11px', color: COLORS.textMuted, fontWeight: 'bold', marginBottom: '2px' }}>🏦 ธนาคาร</div>
                 <div style={{ fontWeight: 'bold', color: COLORS.textMain }}>{selectedRefundDetail.bank_name}</div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
+              <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
                 <div style={{ fontSize: '11px', color: COLORS.textMuted, fontWeight: 'bold', marginBottom: '2px' }}>🔢 เลขที่บัญชี</div>
                 <div style={{ fontWeight: 'bold', color: COLORS.red, fontSize: '14px' }}>{selectedRefundDetail.account_no}</div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
+              <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
                 <div style={{ fontSize: '11px', color: COLORS.textMuted, fontWeight: 'bold', marginBottom: '2px' }}>👤 ชื่อเจ้าของบัญชี</div>
                 <div style={{ fontWeight: 'bold', color: COLORS.textMain }}>{selectedRefundDetail.account_name}</div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
+              <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
                 <div style={{ fontSize: '11px', color: COLORS.textMuted, fontWeight: 'bold', marginBottom: '2px' }}>💰 ยอดเงินที่ต้องคืน</div>
                 <div style={{ fontWeight: '900', color: COLORS.red, fontSize: '15px' }}>
                   ฿{Number(bookings.find(b => Number(b.booking_id) === Number(selectedRefundDetail.booking_id))?.total_price || 0).toLocaleString()}
                 </div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
+              <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
                 <div style={{ fontSize: '11px', color: COLORS.textMuted, fontWeight: 'bold', marginBottom: '2px' }}>📞 เบอร์โทรศัพท์</div>
                 <div style={{ fontWeight: 'bold', color: COLORS.textMain }}>{selectedRefundDetail.phone}</div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
+              <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
                 <div style={{ fontSize: '11px', color: COLORS.textMuted, fontWeight: 'bold', marginBottom: '2px' }}>✉️ อีเมลติดต่อ</div>
                 <div style={{ fontWeight: 'bold', color: COLORS.textMain, wordBreak: 'break-all' }}>{selectedRefundDetail.email}</div>
               </div>
@@ -2152,7 +2152,7 @@ export default function AdminDashboard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
               
               {/* 1. หลักฐานสมุดบัญชี (Book Bank) */}
-              <div style={{ backgroundColor: '#fdf2f8', padding: '14px 16px', borderRadius: '14px', border: '1.5px solid #fbcfe8', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="responsive-row responsive-panel" style={{ backgroundColor: '#fdf2f8', padding: '14px 16px', borderRadius: '14px', border: '1.5px solid #fbcfe8', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <div style={{ fontWeight: 'bold', color: '#9d174d', fontSize: '13px' }}>📄 หลักฐานสมุดบัญชี (Book Bank)</div>
                   <div style={{ fontSize: '11px', color: '#db2777' }}>ตรวจสอบหน้าสมุดบัญชีของลูกค้าก่อนกดโอนเงิน</div>
@@ -2179,7 +2179,7 @@ export default function AdminDashboard() {
                 const slipVal = targetBooking?.slip;
 
                 return (
-                  <div style={{ backgroundColor: '#ecfdf5', padding: '14px 16px', borderRadius: '14px', border: '1.5px solid #a7f3d0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="responsive-row responsive-panel" style={{ backgroundColor: '#ecfdf5', padding: '14px 16px', borderRadius: '14px', border: '1.5px solid #a7f3d0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <div style={{ fontWeight: 'bold', color: '#065f46', fontSize: '13px' }}>📎 สลิปการโอนเงินเดิมของลูกค้า</div>
                       <div style={{ fontSize: '11px', color: '#047857' }}>ตรวจสอบยอดเงินที่ลูกค้าเคยชำระเข้ามา</div>
@@ -2203,7 +2203,7 @@ export default function AdminDashboard() {
 
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div className="responsive-row" style={{ display: 'flex', gap: '10px' }}>
               {selectedRefundDetail.status !== 'คืนเงินแล้ว' && (
                 <button
                   type="button"
@@ -2233,10 +2233,10 @@ export default function AdminDashboard() {
 
       {/* Modal แสดงข้อมูลรายละเอียดลูกค้า พร้อมเพิ่มปุ่ม "ยกเลิกคำสั่งนี้" */}
       {selectedBookingDetail && (
-        <div onClick={() => setSelectedBookingDetail(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10002, padding: '20px' }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '24px', padding: '32px', maxWidth: '600px', width: '100%', boxShadow: '0 25px 50px rgba(0,0,0,0.15)', border: `1.5px solid ${COLORS.border}`, maxHeight: '90vh', overflowY: 'auto' }}>
+        <div className="responsive-modal responsive-row" onClick={() => setSelectedBookingDetail(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10002, padding: '20px' }}>
+          <div className="responsive-panel" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '24px', padding: '32px', maxWidth: '600px', width: '100%', boxShadow: '0 25px 50px rgba(0,0,0,0.15)', border: `1.5px solid ${COLORS.border}`, maxHeight: '90vh', overflowY: 'auto' }}>
             
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: `1.5px solid ${COLORS.border}`, paddingBottom: '14px' }}>
+            <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: `1.5px solid ${COLORS.border}`, paddingBottom: '14px' }}>
               <div>
                 <span style={{ backgroundColor: COLORS.yellow, color: COLORS.brown, padding: '3px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: '900' }}>
                   รหัสการจอง #{selectedBookingDetail.booking_id}
@@ -2248,23 +2248,23 @@ export default function AdminDashboard() {
               <button type="button" onClick={() => setSelectedBookingDetail(null)} style={{ background: '#f1f5f9', border: 'none', width: '34px', height: '34px', borderRadius: '50%', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer', color: COLORS.textMuted }}>✕</button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px', fontSize: '13px' }}>
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
+            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px', fontSize: '13px' }}>
+              <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
                 <div style={{ fontSize: '11px', color: COLORS.textMuted, fontWeight: 'bold', marginBottom: '2px' }}>📅 รอบวันเดินทาง</div>
                 <div style={{ fontWeight: 'bold', color: COLORS.brown }}>{selectedBookingDetail.travel_date}</div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
+              <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
                 <div style={{ fontSize: '11px', color: COLORS.textMuted, fontWeight: 'bold', marginBottom: '2px' }}>💰 ยอดชำระสุทธิ</div>
                 <div style={{ fontWeight: '900', color: COLORS.red }}>฿{Number(selectedBookingDetail.total_price || 0).toLocaleString()}</div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
+              <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
                 <div style={{ fontSize: '11px', color: COLORS.textMuted, fontWeight: 'bold', marginBottom: '2px' }}>✉️ อีเมลผู้จอง</div>
                 <div style={{ fontWeight: 'bold', color: COLORS.textMain, wordBreak: 'break-all' }}>{selectedBookingDetail.customer_email || '-'}</div>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
+              <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
                 <div style={{ fontSize: '11px', color: COLORS.textMuted, fontWeight: 'bold', marginBottom: '2px' }}>📞 เบอร์โทรผู้จอง</div>
                 <div style={{ fontWeight: 'bold', color: COLORS.textMain }}>{selectedBookingDetail.customer_phone || '-'}</div>
               </div>
@@ -2276,8 +2276,8 @@ export default function AdminDashboard() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {selectedBookingDetail.travelers?.map((t, idx) => (
-                  <div key={idx} style={{ backgroundColor: '#f8fafc', border: `1.5px solid ${COLORS.border}`, borderRadius: '12px', padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div className="responsive-row responsive-panel" key={idx} style={{ backgroundColor: '#f8fafc', border: `1.5px solid ${COLORS.border}`, borderRadius: '12px', padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <span style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: idx === 0 ? '#ffe8a3' : '#dff5f2', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', color: COLORS.brown }}>
                         {idx + 1}
                       </span>
@@ -2295,18 +2295,18 @@ export default function AdminDashboard() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px', fontSize: '12px' }}>
-              <div style={{ backgroundColor: '#fffdf4', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #fde047' }}>
+              <div className="responsive-panel" style={{ backgroundColor: '#fffdf4', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #fde047' }}>
                 <span style={{ fontWeight: 'bold', color: '#854d0e' }}>🍲 ข้อจำกัดด้านอาหาร: </span>
                 <span style={{ color: COLORS.textMain }}>{selectedBookingDetail.special_diet || 'ทั่วไป (ไม่ระบุ)'}</span>
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
+              <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${COLORS.border}` }}>
                 <span style={{ fontWeight: 'bold', color: COLORS.brown }}>💬 คำขอพิเศษ / หมายเหตุจากลูกค้า: </span>
                 <div style={{ color: COLORS.textMuted, marginTop: '4px' }}>{selectedBookingDetail.special_notes || 'ไม่มีคำขอพิเศษ'}</div>
               </div>
 
               {selectedBookingDetail.slip && (
-                <div style={{ backgroundColor: '#f0fdf4', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #a7f3d0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="responsive-row responsive-panel" style={{ backgroundColor: '#f0fdf4', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #a7f3d0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontWeight: 'bold', color: '#065f46' }}>📎 แนบหลักฐานสลิปโอนเงินแล้ว</span>
                   <button
                     type="button"
@@ -2322,7 +2322,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* ปุ่มยกเลิกคำสั่งซื้อนี้สำหรับแอดมิน */}
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div className="responsive-row" style={{ display: 'flex', gap: '10px' }}>
               {!String(selectedBookingDetail.booking_status || '').includes('ยกเลิก') && (
                 <button
                   type="button"
@@ -2347,8 +2347,8 @@ export default function AdminDashboard() {
 
       {/* Modal แจ้งเตือนสำเร็จ */}
       {alertModal.show && (
-        <div onClick={closeAlert} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10006, padding: '20px' }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '24px', padding: '32px 28px', maxWidth: '420px', width: '100%', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', border: `1.5px solid ${COLORS.border}` }}>
+        <div className="responsive-row responsive-modal" onClick={closeAlert} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10006, padding: '20px' }}>
+          <div className="responsive-panel" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '24px', padding: '32px 28px', maxWidth: '420px', width: '100%', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', border: `1.5px solid ${COLORS.border}` }}>
             <h3 style={{ fontSize: '18px', fontWeight: '900', color: COLORS.brown, margin: '0 0 8px 0' }}>{alertModal.title}</h3>
             <p style={{ fontSize: '13px', color: COLORS.textMuted, margin: '0 0 24px 0' }}>{alertModal.message}</p>
             <button type="button" onClick={closeAlert} style={{ backgroundColor: COLORS.yellow, color: COLORS.brown, border: 'none', padding: '11px 28px', borderRadius: '14px', fontSize: '13px', fontWeight: '900', cursor: 'pointer' }}>ตกลง</button>
@@ -2358,11 +2358,11 @@ export default function AdminDashboard() {
 
       {/* Modal ยืนยันการทำรายการ (Confirm Modal) */}
       {confirmModal.show && (
-        <div onClick={closeConfirm} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10007, padding: '20px' }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '24px', padding: '30px 28px', maxWidth: '420px', width: '100%', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.18)', border: `1.5px solid ${COLORS.border}` }}>
+        <div className="responsive-row responsive-modal" onClick={closeConfirm} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10007, padding: '20px' }}>
+          <div className="responsive-panel" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '24px', padding: '30px 28px', maxWidth: '420px', width: '100%', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.18)', border: `1.5px solid ${COLORS.border}` }}>
             <h3 style={{ fontSize: '18px', fontWeight: '900', color: COLORS.brown, margin: '0 0 8px 0' }}>{confirmModal.title}</h3>
             <p style={{ fontSize: '13px', color: COLORS.textMuted, margin: '0 0 24px 0' }}>{confirmModal.message}</p>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+            <div className="responsive-row" style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
               <button type="button" onClick={closeConfirm} style={{ flex: 1, backgroundColor: '#f1f5f9', color: COLORS.textMain, border: 'none', padding: '11px 18px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}>ยกเลิก</button>
               <button type="button" onClick={async () => { const action = confirmModal.onConfirm; closeConfirm(); if (action) await action(); }} style={{ flex: 1, backgroundColor: COLORS.red, color: '#ffffff', border: 'none', padding: '11px 18px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer' }}>ยืนยัน</button>
             </div>
@@ -2372,8 +2372,8 @@ export default function AdminDashboard() {
 
       {/* Modal ดูสลิป */}
       {previewSlipUrl && (
-        <div onClick={() => setPreviewSlipUrl(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10005, padding: '20px' }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '20px', padding: '20px', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 25px 50px rgba(0,0,0,0.3)' }}>
+        <div className="responsive-modal responsive-row" onClick={() => setPreviewSlipUrl(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10005, padding: '20px' }}>
+          <div className="responsive-panel" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '20px', padding: '20px', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 25px 50px rgba(0,0,0,0.3)' }}>
             <h3 style={{ margin: '0 0 12px 0', color: COLORS.brown }}>หลักฐานการโอนเงิน (Slip)</h3>
             <PrivateDocumentImage value={previewSlipUrl} alt="Slip" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '12px' }} />
             <button onClick={() => setPreviewSlipUrl(null)} style={{ marginTop: '16px', backgroundColor: COLORS.brown, color: '#ffffff', border: 'none', padding: '8px 24px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' }}>ปิดหน้าต่าง</button>
@@ -2383,8 +2383,8 @@ export default function AdminDashboard() {
 
       {/* Modal ดูสมุดบัญชี (Book Bank Preview) */}
       {previewBookBankUrl && (
-        <div onClick={() => setPreviewBookBankUrl(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10006, padding: '20px' }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '20px', padding: '20px', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 25px 50px rgba(0,0,0,0.3)' }}>
+        <div className="responsive-modal responsive-row" onClick={() => setPreviewBookBankUrl(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10006, padding: '20px' }}>
+          <div className="responsive-panel" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '20px', padding: '20px', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 25px 50px rgba(0,0,0,0.3)' }}>
             <h3 style={{ margin: '0 0 12px 0', color: COLORS.brown, fontSize: '16px' }}>หลักฐานสมุดบัญชี (Book Bank)</h3>
             <PrivateDocumentImage value={previewBookBankUrl} alt="Book Bank" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '12px' }} />
             <button type="button" onClick={() => setPreviewBookBankUrl(null)} style={{ marginTop: '16px', backgroundColor: COLORS.brown, color: '#ffffff', border: 'none', padding: '8px 24px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' }}>ปิดหน้าต่าง</button>

@@ -306,36 +306,36 @@ export default function Booking() {
   }
 
   return (
-    <div style={{ backgroundColor: theme.bg, minHeight: '100vh', padding: '100px 24px 80px', fontFamily: "'Prompt', -apple-system, BlinkMacSystemFont, sans-serif", color: '#2d3748' }}>
+    <div className="outsy-page page-booking" style={{ backgroundColor: theme.bg, minHeight: '100vh', padding: '100px 24px 80px', fontFamily: "'Prompt', -apple-system, BlinkMacSystemFont, sans-serif", color: '#2d3748' }}>
       <div style={{ maxWidth: '1180px', margin: '0 auto' }}>
 
         {/* STEP INDICATOR */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', fontSize: '14px', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.cyan, fontWeight: 'bold', cursor: 'pointer' }} onClick={() => navigate('/packages')}>
+        <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', fontSize: '14px', flexWrap: 'wrap' }}>
+          <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: theme.cyan, fontWeight: 'bold', cursor: 'pointer' }} onClick={() => navigate('/packages')}>
             <span style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: theme.cyan, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}>✓</span>เลือกแพ็กเกจทัวร์
           </div>
           <span style={{ color: '#cbd5e1' }}>›</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: currentStep === 2 ? theme.red : currentStep > 2 ? theme.cyan : theme.brown, fontWeight: 'bold' }}>
+          <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: currentStep === 2 ? theme.red : currentStep > 2 ? theme.cyan : theme.brown, fontWeight: 'bold' }}>
             <span style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: currentStep === 2 ? theme.red : currentStep > 2 ? theme.cyan : '#94a3b8', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}>{currentStep > 2 ? '✓' : '2'}</span>กรอกรายละเอียด
           </div>
           <span style={{ color: '#cbd5e1' }}>›</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: currentStep >= 3 ? theme.red : '#94a3b8', fontWeight: currentStep >= 3 ? 'bold' : 'normal' }}>
+          <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: currentStep >= 3 ? theme.red : '#94a3b8', fontWeight: currentStep >= 3 ? 'bold' : 'normal' }}>
             <span style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: currentStep >= 3 ? theme.red : '#cbd5e1', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}>{currentStep === 4 ? '✓' : '3'}</span>ยืนยันการจอง & ชำระเงิน
           </div>
         </div>
 
         {/* STEP 2 */}
         {currentStep === 2 && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1.45fr 1fr', gap: '28px', alignItems: 'start' }}>
+          <div className="responsive-grid page-columns" style={{ display: 'grid', gridTemplateColumns: '1.45fr 1fr', gap: '28px', alignItems: 'start' }}>
             
             {/* LEFT */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {formError && (
-                <div style={{ backgroundColor: '#fff1f2', border: `1.5px solid ${theme.red}`, borderRadius: '14px', padding: '14px 18px', color: theme.red, fontSize: '13px', fontWeight: 'bold' }}>⚠️ {formError}</div>
+                <div className="responsive-panel" style={{ backgroundColor: '#fff1f2', border: `1.5px solid ${theme.red}`, borderRadius: '14px', padding: '14px 18px', color: theme.red, fontSize: '13px', fontWeight: 'bold' }}>⚠️ {formError}</div>
               )}
 
-              <div style={{ backgroundColor: theme.card, borderRadius: '20px', padding: '28px', border: `1px solid ${theme.border}`, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '15px' }}>
+              <div className="responsive-panel" style={{ backgroundColor: theme.card, borderRadius: '20px', padding: '28px', border: `1px solid ${theme.border}`, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+                <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '15px' }}>
                   <div>
                     <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: '0 0 4px', color: theme.brown }}>ข้อมูลผู้เดินทาง</h2>
                     <p style={{ margin: 0, fontSize: '12px', color: theme.textMuted }}>กรุณากรอกข้อมูลผู้จอง และรายชื่อผู้เดินทางเพิ่มเติม</p>
@@ -349,7 +349,7 @@ export default function Booking() {
                 <div style={{ marginTop: '20px' }}>
                   <div style={{ fontSize: '13px', fontWeight: 'bold', color: theme.brown, marginBottom: '12px' }}>ผู้จองหลัก</div>
                   
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                  <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                     <div>
                       <label style={labelStyle}>ชื่อ *</label>
                       <input ref={firstNameRef} type="text" placeholder="กรอกชื่อจริง" value={customer.firstName} onChange={(e) => { setCustomer({ ...customer, firstName: e.target.value }); if (formError) setFormError(''); if (missingFields.firstName) setMissingFields({ ...missingFields, firstName: false }); }} style={{ ...inputStyle, borderColor: missingFields.firstName ? theme.red : '#e2e8f0' }} />
@@ -360,15 +360,15 @@ export default function Booking() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: '16px', marginBottom: '6px' }}>
+                  <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: '16px', marginBottom: '6px' }}>
                     <div>
                       <label style={labelStyle}>อีเมล *</label>
                       <input ref={emailRef} type="email" placeholder="yourname@email.com" value={customer.email} onChange={(e) => { setCustomer({ ...customer, email: e.target.value }); if (formError) setFormError(''); if (missingFields.email) setMissingFields({ ...missingFields, email: false }); }} style={{ ...inputStyle, borderColor: missingFields.email ? theme.red : '#e2e8f0' }} />
                     </div>
                     <div>
                       <label style={labelStyle}>หมายเลขโทรศัพท์ * (เฉพาะตัวเลข)</label>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <div style={{ padding: '11px 12px', backgroundColor: '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: '12px', fontSize: '13px', fontWeight: 'bold', color: '#64748b' }}>(+66)</div>
+                      <div className="responsive-row" style={{ display: 'flex', gap: '8px' }}>
+                        <div className="responsive-panel" style={{ padding: '11px 12px', backgroundColor: '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: '12px', fontSize: '13px', fontWeight: 'bold', color: '#64748b' }}>(+66)</div>
                         <input ref={phoneRef} type="tel" inputMode="numeric" placeholder="08X-XXX-XXXX" value={customer.phone} onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); setCustomer({ ...customer, phone: val }); if (formError) setFormError(''); if (missingFields.phone) setMissingFields({ ...missingFields, phone: false }); }} style={{ ...inputStyle, flex: 1, borderColor: missingFields.phone ? theme.red : '#e2e8f0' }} />
                       </div>
                     </div>
@@ -383,7 +383,7 @@ export default function Booking() {
                     <div style={{ fontSize: '11px', color: theme.textMuted, marginBottom: '12px' }}>กรอกชื่อ-นามสกุล และเบอร์โทรศัพท์ (เฉพาะตัวเลข ถ้ามี)</div>
 
                     {additionalTravelers.map((traveler, index) => (
-                      <div key={traveler.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.1fr 40px', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
+                      <div className="responsive-grid traveler-fields" key={traveler.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.1fr 40px', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
                         <input type="text" placeholder="ชื่อ" value={traveler.firstName} onChange={(e) => handleTravelerChange(traveler.id, 'firstName', e.target.value)} style={inputStyle} />
                         <input type="text" placeholder="นามสกุล" value={traveler.lastName} onChange={(e) => handleTravelerChange(traveler.id, 'lastName', e.target.value)} style={inputStyle} />
                         <input type="tel" inputMode="numeric" placeholder="เบอร์โทร (เฉพาะตัวเลข)" value={traveler.phone || ''} onChange={(e) => handleTravelerChange(traveler.id, 'phone', e.target.value)} style={inputStyle} />
@@ -395,13 +395,13 @@ export default function Booking() {
               </div>
 
               {/* SPECIAL REQUEST */}
-              <div style={{ backgroundColor: theme.card, borderRadius: '20px', padding: '26px', border: `1px solid ${theme.border}` }}>
+              <div className="responsive-panel" style={{ backgroundColor: theme.card, borderRadius: '20px', padding: '26px', border: `1px solid ${theme.border}` }}>
                 <h3 style={{ fontSize: '17px', fontWeight: 'bold', margin: '0 0 4px', color: theme.brown }}>คำขอพิเศษ (หากมี)</h3>
                 <p style={{ margin: '0 0 16px', fontSize: '12px', color: theme.textMuted }}>ทีมงาน Outsy จะพยายามอย่างดีที่สุดในการดูแลคำขอพิเศษของท่าน</p>
 
                 <div style={{ marginBottom: '14px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>ข้อจำกัดด้านอาหาร</label>
-                  <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                  <div className="responsive-row" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                     <label style={radioLabelStyle}><input type="radio" checked={customer.specialDiet === 'none'} onChange={() => setCustomer({ ...customer, specialDiet: 'none' })} style={{ accentColor: theme.cyan }} />ทั่วไป</label>
                     <label style={radioLabelStyle}><input type="radio" checked={customer.specialDiet === 'vegetarian'} onChange={() => setCustomer({ ...customer, specialDiet: 'vegetarian' })} style={{ accentColor: theme.cyan }} />มังสวิรัติ</label>
                     <label style={radioLabelStyle}><input type="radio" checked={customer.specialDiet === 'vegan'} onChange={() => setCustomer({ ...customer, specialDiet: 'vegan' })} style={{ accentColor: theme.cyan }} />วีแกน</label>
@@ -416,9 +416,9 @@ export default function Booking() {
               </div>
 
               {/* PAYMENT METHOD */}
-              <div style={{ backgroundColor: theme.card, borderRadius: '20px', padding: '26px', border: `1px solid ${theme.border}` }}>
+              <div className="responsive-panel" style={{ backgroundColor: theme.card, borderRadius: '20px', padding: '26px', border: `1px solid ${theme.border}` }}>
                 <h3 style={{ fontSize: '17px', fontWeight: 'bold', margin: '0 0 16px', color: theme.brown }}>คุณต้องการชำระเงินด้วยวิธีใด?</h3>
-                <div style={{ border: `2px solid ${theme.cyan}`, borderRadius: '14px', padding: '16px', backgroundColor: '#faffff' }}>
+                <div className="responsive-panel" style={{ border: `2px solid ${theme.cyan}`, borderRadius: '14px', padding: '16px', backgroundColor: '#faffff' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold', fontSize: '14px', color: theme.brown }}>
                     <input type="radio" checked readOnly style={{ accentColor: theme.cyan, width: '18px', height: '18px' }} />สแกนเพื่อชำระเงิน (PromptPay QR Code)
                   </label>
@@ -435,9 +435,9 @@ export default function Booking() {
             </div>
 
             {/* RIGHT */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'sticky', top: '100px' }}>
-              <div style={{ backgroundColor: theme.card, borderRadius: '20px', padding: '22px', border: `1px solid ${theme.border}` }}>
-                <div style={{ display: 'flex', gap: '14px', marginBottom: '16px' }}>
+            <div className="responsive-sticky" style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'sticky', top: '100px' }}>
+              <div className="responsive-panel" style={{ backgroundColor: theme.card, borderRadius: '20px', padding: '22px', border: `1px solid ${theme.border}` }}>
+                <div className="responsive-row" style={{ display: 'flex', gap: '14px', marginBottom: '16px' }}>
                   <img src={tourPackage.image_path ? tourPackage.image_path.split(',')[0].trim() : 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=600'} alt={tourPackage.package_name} style={{ width: '90px', height: '90px', borderRadius: '14px', objectFit: 'cover' }} />
                   <div>
                     <span style={{ backgroundColor: theme.yellow, color: theme.brown, padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold' }}>{tourPackage.package_id}</span>
@@ -452,7 +452,7 @@ export default function Booking() {
                 </div>
 
                 {/* DATE */}
-                <div style={{ marginTop: '16px', padding: '14px', backgroundColor: '#f8fafc', borderRadius: '12px', border: `1px solid ${theme.border}` }}>
+                <div className="responsive-panel" style={{ marginTop: '16px', padding: '14px', backgroundColor: '#f8fafc', borderRadius: '12px', border: `1px solid ${theme.border}` }}>
                   <div style={{ fontSize: '11px', color: theme.textMuted, marginBottom: '2px' }}>รอบวันที่เดินทาง:</div>
                   <div style={{ fontWeight: 'bold', fontSize: '15px', color: theme.brown, marginBottom: '8px' }}>📅 {selectedDate || 'รอบวันเดินทางพิเศษ'}</div>
                   
@@ -472,22 +472,22 @@ export default function Booking() {
               </div>
 
               {/* PRICE */}
-              <div style={{ backgroundColor: theme.card, borderRadius: '20px', padding: '24px', border: `1px solid ${theme.border}` }}>
+              <div className="responsive-panel" style={{ backgroundColor: theme.card, borderRadius: '20px', padding: '24px', border: `1px solid ${theme.border}` }}>
                 <h3 style={{ fontSize: '17px', fontWeight: 'bold', margin: '0 0 16px', color: theme.brown }}>รายละเอียดราคา</h3>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px' }}>
+                <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px' }}>
                   <span>ราคาต่อท่าน</span><span>฿{pricePerPerson.toLocaleString()}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px', fontSize: '14px' }}>
+                <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px', fontSize: '14px' }}>
                   <span>จำนวนผู้เดินทาง</span><span style={{ fontWeight: 'bold', color: theme.cyan }}>{totalPassengers} ท่าน</span>
                 </div>
-                <div style={{ borderTop: `1.5px dashed ${theme.border}`, paddingTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                <div className="responsive-row" style={{ borderTop: `1.5px dashed ${theme.border}`, paddingTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                   <span style={{ fontSize: '16px', fontWeight: 'bold', color: theme.brown }}>ยอดชำระสุทธิ</span>
                   <span style={{ fontSize: '26px', fontWeight: '900', color: theme.red }}>฿{netTotal.toLocaleString()}</span>
                 </div>
               </div>
 
               {/* CONDITIONS */}
-              <div style={{ backgroundColor: '#fffdf4', borderRadius: '18px', padding: '20px', border: '1.5px solid #f59e0b' }}>
+              <div className="responsive-panel" style={{ backgroundColor: '#fffdf4', borderRadius: '18px', padding: '20px', border: '1.5px solid #f59e0b' }}>
                 <h4 style={{ margin: '0 0 10px', fontSize: '14px', fontWeight: '900', color: '#b45309' }}>⚠️ เงื่อนไขการออกเดินทาง & นโยบายการยกเลิก</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px', color: '#78350f', lineHeight: '1.6' }}>
                   <div>🚐 <strong>การออกเดินทาง:</strong> ทริปนี้จะออกเดินทางเมื่อมีผู้ร่วมทริปตั้งแต่ <strong>4 ท่านขึ้นไป</strong> หากรอบเดินทางมีผู้จองไม่ครบ ทางบริษัทขอยกเลิกทริป โดยจะแจ้งให้ทราบล่วงหน้าและ <strong style={{ color: '#047857', backgroundColor: '#d1fae5', padding: '1px 6px', borderRadius: '4px' }}>คืนเงินให้เต็มจำนวน 100%</strong></div>
@@ -501,22 +501,22 @@ export default function Booking() {
 
         {/* STEP 3 - PAYMENT */}
         {currentStep === 3 && (
-          <div style={{ maxWidth: '500px', margin: '20px auto', backgroundColor: theme.card, borderRadius: '24px', padding: '32px', border: `1px solid ${theme.border}`, textAlign: 'center', boxShadow: '0 6px 24px rgba(0,0,0,0.06)' }}>
-            <div style={{ backgroundColor: theme.cyan, color: '#024245', padding: '6px 14px', borderRadius: '8px', display: 'inline-block', fontWeight: 'bold', fontSize: '13px', marginBottom: '14px' }}>PROMPTPAY QR CODE</div>
+          <div className="responsive-panel" style={{ maxWidth: '500px', margin: '20px auto', backgroundColor: theme.card, borderRadius: '24px', padding: '32px', border: `1px solid ${theme.border}`, textAlign: 'center', boxShadow: '0 6px 24px rgba(0,0,0,0.06)' }}>
+            <div className="responsive-panel" style={{ backgroundColor: theme.cyan, color: '#024245', padding: '6px 14px', borderRadius: '8px', display: 'inline-block', fontWeight: 'bold', fontSize: '13px', marginBottom: '14px' }}>PROMPTPAY QR CODE</div>
             <h2 style={{ margin: '0 0 6px', color: theme.brown }}>สแกนเพื่อชำระเงิน</h2>
             <p style={{ margin: '0 0 16px', fontSize: '13px', color: theme.textMuted }}>รหัสการจอง: <b>#{bookingRefId}</b></p>
 
-            <div style={{ border: `3px solid ${theme.yellow}`, borderRadius: '18px', padding: '16px', display: 'inline-block', backgroundColor: '#fff', marginBottom: '16px' }}>
+            <div className="responsive-panel" style={{ border: `3px solid ${theme.yellow}`, borderRadius: '18px', padding: '16px', display: 'inline-block', backgroundColor: '#fff', marginBottom: '16px' }}>
               <img src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=OUTSY_BOOKING_${bookingRefId}_AMOUNT_${netTotal}`} alt="PromptPay QR Code" style={{ width: '220px', height: '220px', display: 'block' }} />
             </div>
 
-            <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '12px', marginBottom: '18px' }}>
+            <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '12px', marginBottom: '18px' }}>
               <span style={{ fontSize: '13px', color: '#64748b' }}>ยอดเงินที่ต้องชำระ: </span>
               <span style={{ fontSize: '26px', fontWeight: '900', color: theme.red }}>฿{netTotal.toLocaleString()}</span>
             </div>
 
             {formError && (
-              <div style={{ backgroundColor: '#fff1f2', border: `1px solid ${theme.red}`, color: theme.red, padding: '10px', borderRadius: '10px', fontSize: '12px', marginBottom: '15px' }}>{formError}</div>
+              <div className="responsive-panel" style={{ backgroundColor: '#fff1f2', border: `1px solid ${theme.red}`, color: theme.red, padding: '10px', borderRadius: '10px', fontSize: '12px', marginBottom: '15px' }}>{formError}</div>
             )}
 
             <div style={{ textAlign: 'left', marginBottom: '18px' }}>
@@ -524,7 +524,7 @@ export default function Booking() {
               <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { setSlipFile(e.target.files?.[0] || null); if (formError) setFormError(''); }} style={{ ...inputStyle, padding: '8px' }} />
             </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div className="responsive-row" style={{ display: 'flex', gap: '12px' }}>
               <button type="button" onClick={() => setCurrentStep(2)} disabled={submitting} style={{ flex: 1, backgroundColor: '#f1f5f9', color: theme.brown, border: 'none', padding: '14px', borderRadius: '14px', fontWeight: 'bold', cursor: 'pointer' }}>ย้อนกลับ</button>
               <button type="button" onClick={handleFinishPayment} disabled={submitting} style={{ flex: 2, backgroundColor: theme.cyan, color: '#013a3d', border: 'none', padding: '14px', borderRadius: '14px', fontWeight: 'bold', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 }}>{submitting ? 'กำลังบันทึก...' : 'แจ้งชำระเงินเสร็จสิ้น ✓'}</button>
             </div>
@@ -533,17 +533,17 @@ export default function Booking() {
 
         {/* STEP 4 - SUCCESS */}
         {currentStep === 4 && (
-          <div style={{ maxWidth: '580px', margin: '30px auto', backgroundColor: theme.card, borderRadius: '24px', padding: '40px 32px', textAlign: 'center', border: `2px solid ${theme.cyan}`, boxShadow: '0 8px 30px rgba(0,0,0,0.06)' }}>
-            <div style={{ width: '72px', height: '72px', backgroundColor: '#e6fafb', color: theme.cyan, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '38px', margin: '0 auto 18px', border: `2px solid ${theme.cyan}` }}>✓</div>
+          <div className="responsive-panel" style={{ maxWidth: '580px', margin: '30px auto', backgroundColor: theme.card, borderRadius: '24px', padding: '40px 32px', textAlign: 'center', border: `2px solid ${theme.cyan}`, boxShadow: '0 8px 30px rgba(0,0,0,0.06)' }}>
+            <div className="responsive-row" style={{ width: '72px', height: '72px', backgroundColor: '#e6fafb', color: theme.cyan, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '38px', margin: '0 auto 18px', border: `2px solid ${theme.cyan}` }}>✓</div>
             <h2 style={{ fontSize: '24px', fontWeight: '900', color: theme.brown, margin: '0 0 8px' }}>ทำรายการจองสำเร็จเรียบร้อย!</h2>
             <p style={{ color: theme.textMuted, fontSize: '14px', margin: '0 0 24px', lineHeight: 1.6 }}>ระบบได้รับข้อมูลการจองและบันทึกในระบบ Outsy เรียบร้อยแล้ว</p>
 
-            <div style={{ backgroundColor: '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: '16px', padding: '18px 22px', textAlign: 'left', marginBottom: '28px' }}>
+            <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: '16px', padding: '18px 22px', textAlign: 'left', marginBottom: '28px' }}>
               <SuccessRow label="รหัสการจอง (Booking ID)" value={`#${bookingRefId}`} />
               <SuccessRow label="แพ็กเกจทัวร์" value={tourPackage.package_name} />
               <SuccessRow label="รอบวันเดินทาง" value={selectedDate || 'รอบวันเดินทางพิเศษ'} />
               <SuccessRow label="จำนวนผู้เดินทาง" value={`${totalPassengers} ท่าน`} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: `1.5px dashed ${theme.border}`, paddingTop: '10px', fontSize: '14px' }}>
+              <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', borderTop: `1.5px dashed ${theme.border}`, paddingTop: '10px', fontSize: '14px' }}>
                 <span style={{ fontWeight: 'bold', color: theme.brown }}>ยอดเงินสุทธิ:</span>
                 <span style={{ fontWeight: '900', color: theme.red, fontSize: '18px' }}>฿{netTotal.toLocaleString()}</span>
               </div>
@@ -562,7 +562,7 @@ export default function Booking() {
 
 function SuccessRow({ label, value }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px', gap: '15px' }}>
+    <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '13px', gap: '15px' }}>
       <span style={{ color: '#738096' }}>{label}:</span>
       <span style={{ fontWeight: 'bold', color: '#573e33', textAlign: 'right' }}>{value}</span>
     </div>

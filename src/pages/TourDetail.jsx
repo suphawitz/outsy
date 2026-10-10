@@ -93,7 +93,7 @@ export default function TourDetail() {
 
   if (loading) {
     return (
-      <div style={{ backgroundColor: COLORS.bg, minHeight: '100vh', padding: '140px 24px', textAlign: 'center', color: COLORS.textMuted, fontFamily: "'Prompt', sans-serif" }}>
+      <div className="outsy-page page-tourdetail" style={{ backgroundColor: COLORS.bg, minHeight: '100vh', padding: '140px 24px', textAlign: 'center', color: COLORS.textMuted, fontFamily: "'Prompt', sans-serif" }}>
         <div style={{ fontSize: '36px', marginBottom: '12px' }}>🧭</div>
         <div>กำลังเตรียมข้อมูลการเดินทาง...</div>
       </div>
@@ -102,7 +102,7 @@ export default function TourDetail() {
 
   if (!tour) {
     return (
-      <div style={{ backgroundColor: COLORS.bg, minHeight: '100vh', padding: '140px 24px', textAlign: 'center', fontFamily: "'Prompt', sans-serif" }}>
+      <div className="outsy-page page-tourdetail" style={{ backgroundColor: COLORS.bg, minHeight: '100vh', padding: '140px 24px', textAlign: 'center', fontFamily: "'Prompt', sans-serif" }}>
         <h2 style={{ color: COLORS.brown }}>ไม่พบข้อมูลแพ็กเกจนี้</h2>
         <button
           onClick={() => navigate('/packages')}
@@ -158,7 +158,7 @@ export default function TourDetail() {
   };
 
   return (
-    <div style={{
+    <div className="outsy-page page-tourdetail" style={{
       backgroundColor: COLORS.bg,
       minHeight: '100vh',
       padding: '110px 24px 80px 24px',
@@ -186,10 +186,10 @@ export default function TourDetail() {
           <span>←</span> ย้อนกลับไปหน้ารวมแพ็กเกจ
         </button>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '440px 1fr', gap: '36px', alignItems: 'start' }}>
+        <div className="responsive-grid page-columns" style={{ display: 'grid', gridTemplateColumns: '440px 1fr', gap: '36px', alignItems: 'start' }}>
           
           {/* ================= ฝั่งซ้าย: รูปภาพและกล่องจองทริป ================= */}
-          <div style={{ position: 'sticky', top: '100px' }}>
+          <div className="responsive-sticky" style={{ position: 'sticky', top: '100px' }}>
             <div style={{
               position: 'relative',
               borderRadius: '24px',
@@ -202,7 +202,7 @@ export default function TourDetail() {
               {mainImage && (
                 <img src={mainImage} alt={tour.package_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               )}
-              <div style={{
+              <div className="responsive-panel" style={{
                 position: 'absolute',
                 top: '14px',
                 left: '14px',
@@ -220,7 +220,7 @@ export default function TourDetail() {
 
             {/* แกลเลอรีรูปย่อ */}
             {allImages.length > 1 && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginTop: '12px' }}>
+              <div className="tour-thumbnails" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginTop: '12px' }}>
                 {allImages.map((imgUrl, i) => (
                   <div
                     key={i}
@@ -240,7 +240,7 @@ export default function TourDetail() {
             )}
 
             {/* การ์ดราคา เลือกรอบวัน และแสดงจำนวนคนจอง */}
-            <div style={{
+            <div className="responsive-panel" style={{
               backgroundColor: COLORS.card,
               borderRadius: '24px',
               padding: '22px 24px',
@@ -252,8 +252,8 @@ export default function TourDetail() {
                 ราคาเริ่มต้น
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+              <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '16px' }}>
+                <div className="responsive-row" style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
                   <span style={{ fontSize: '32px', fontWeight: '900', color: COLORS.red, lineHeight: 1 }}>
                     ฿{Number(tour.price).toLocaleString()}
                   </span>
@@ -312,14 +312,14 @@ export default function TourDetail() {
 
               {/* แถบสรุปจำนวนคนที่จองรอบนั้น (Progress bar) */}
               {selectedSchedule && (
-                <div style={{
+                <div className="responsive-panel" style={{
                   backgroundColor: '#f8fafc',
                   borderRadius: '16px',
                   padding: '14px 16px',
                   marginBottom: '18px',
                   border: `1px solid ${COLORS.border}`
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '8px', alignItems: 'center' }}>
+                  <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '8px', alignItems: 'center' }}>
                     <span style={{ color: '#475569', fontWeight: 'bold' }}>ยอดผู้จองปัจจุบัน:</span>
                     <strong style={{ color: isFull ? COLORS.red : COLORS.brown, fontSize: '14px' }}>
                       {bookedCount} / {maxCapacity} ท่าน
@@ -397,13 +397,13 @@ export default function TourDetail() {
               {tour.package_name}
             </h1>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', fontSize: '12px', color: COLORS.textMuted, marginBottom: '14px' }}>
+            <div className="responsive-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', fontSize: '12px', color: COLORS.textMuted, marginBottom: '14px' }}>
               <span>⏱️ {tour.duration || '1 วัน (One-Day Trip)'}</span>
               <span>⛩️ ไป-กลับ 1 วัน</span>
               <span>🚐 รวมรถตู้รับ-ส่งตลอดทริป</span>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+            <div className="responsive-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
               {(tour.category_name ? tour.category_name.split(/[,&]/) : ['สายมู & เสริมดวง']).map((cat, idx) => (
                 <span
                   key={idx}
@@ -427,7 +427,7 @@ export default function TourDetail() {
             </div>
 
             {tour.description && (
-              <div style={{
+              <div className="responsive-row responsive-panel" style={{
                 backgroundColor: COLORS.card,
                 padding: '16px 20px',
                 borderRadius: '16px',
@@ -447,15 +447,15 @@ export default function TourDetail() {
             )}
 
             {/* ตารางกำหนดการเดินทาง (Itinerary) */}
-            <div style={{
+            <div className="responsive-panel" style={{
               backgroundColor: COLORS.card,
               borderRadius: '26px',
               padding: '26px 28px',
               boxShadow: '0 4px 18px rgba(0,0,0,0.03)',
               border: `1.5px solid ${COLORS.border}`
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '26px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '26px' }}>
+                <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '18px' }}>🧭</span>
                   <h2 style={{ fontSize: '17px', fontWeight: '900', margin: 0, color: COLORS.brown }}>
                     ตารางกำหนดการเดินทาง (Itinerary)
@@ -481,9 +481,9 @@ export default function TourDetail() {
                   const directPhoto = item.image_url || item.image_path || '';
 
                   return (
-                    <div key={item.itinerary_id || idx} style={{ display: 'flex', gap: '16px', position: 'relative' }}>
+                    <div className="responsive-row" key={item.itinerary_id || idx} style={{ display: 'flex', gap: '16px', position: 'relative' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '38px', flexShrink: 0 }}>
-                        <div style={{
+                        <div className="responsive-row" style={{
                           width: '38px',
                           height: '38px',
                           borderRadius: '50%',
@@ -503,7 +503,7 @@ export default function TourDetail() {
                         )}
                       </div>
 
-                      <div style={{
+                      <div className="responsive-panel" style={{
                         flex: 1,
                         backgroundColor: COLORS.card,
                         border: `1.5px solid ${COLORS.border}`,
@@ -511,7 +511,7 @@ export default function TourDetail() {
                         padding: '16px 20px',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
                       }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                           <span style={{ fontSize: '13px', fontWeight: '900', color: COLORS.red }}>
                             ⏰ {item.time_start} - {item.time_end}
                           </span>
@@ -526,7 +526,7 @@ export default function TourDetail() {
                           {item.title}
                         </h3>
 
-                        <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+                        <div className="responsive-row" style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
                           {directPhoto && (
                             <div style={{
                               width: '84px',
@@ -569,7 +569,7 @@ export default function TourDetail() {
       {/* Custom Modal เตือนเมื่อยังไม่ได้ Login ก่อนจองทัวร์             */}
       {/* ======================================================== */}
       {loginModal && (
-        <div onClick={() => setLoginModal(false)} style={{
+        <div className="responsive-row responsive-modal" onClick={() => setLoginModal(false)} style={{
           position: 'fixed',
           inset: 0,
           backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -580,7 +580,7 @@ export default function TourDetail() {
           zIndex: 9999,
           padding: '20px'
         }}>
-          <div onClick={(e) => e.stopPropagation()} style={{
+          <div className="responsive-panel" onClick={(e) => e.stopPropagation()} style={{
             backgroundColor: '#ffffff',
             borderRadius: '24px',
             padding: '36px 30px',
@@ -597,7 +597,7 @@ export default function TourDetail() {
             <p style={{ fontSize: '13px', color: COLORS.textMuted, margin: '0 0 24px 0', lineHeight: '1.5' }}>
               คุณต้องเข้าสู่ระบบสมาชิก OUTSY! ก่อนจึงจะสามารถจองแพ็กเกจทัวร์ได้
             </p>
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div className="responsive-row" style={{ display: 'flex', gap: '10px' }}>
               <button
                 type="button"
                 onClick={() => setLoginModal(false)}

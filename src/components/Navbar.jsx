@@ -101,7 +101,7 @@ export default function Navbar() {
   };
 
   return (
-    <div style={{
+    <div className="site-navbar" style={{
       position: 'fixed',
       top: '16px',
       left: 0,
@@ -111,7 +111,7 @@ export default function Navbar() {
       boxSizing: 'border-box',
       pointerEvents: 'none'
     }}>
-      <header style={{
+      <header className="site-navbar-header" style={{
         maxWidth: '1280px',
         margin: '0 auto',
         height: '66px',
@@ -129,7 +129,7 @@ export default function Navbar() {
       }}>
 
         {/* ฝั่งซ้าย: เมนูนำทาง */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '8px', justifySelf: 'start' }}>
+        <nav className="site-nav-links" aria-label="เมนูหลัก" style={{ display: 'flex', alignItems: 'center', gap: '8px', justifySelf: 'start' }}>
           {[
             { name: 'หน้าหลัก', path: '/' },
             { name: 'แพ็กเกจทัวร์', path: '/packages' },
@@ -159,7 +159,7 @@ export default function Navbar() {
         </nav>
 
         {/* ตรงกลาง: โลโก้ Outsy! */}
-        <Link 
+        <Link className="site-brand"
           to="/" 
           style={{ 
             display: 'flex', 
@@ -187,11 +187,11 @@ export default function Navbar() {
         </Link>
 
         {/* ฝั่งขวา: โปรไฟล์ผู้ใช้ / ปุ่มเข้าสู่ระบบ & ปุ่ม Admin (แสดงเฉพาะ Admin) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifySelf: 'end' }}>
+        <div className="site-nav-account" style={{ display: 'flex', alignItems: 'center', gap: '10px', justifySelf: 'end' }}>
           
           {user ? (
             <div style={{ position: 'relative' }} ref={dropdownRef}>
-              <button
+              <button className="site-profile-button"
                 type="button"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 style={{
@@ -351,7 +351,7 @@ export default function Navbar() {
 
       {/* Custom Alert Modal ดีไซน์มินิมอลสวยงาม */}
       {logoutModal && (
-        <div style={{
+        <div className="responsive-modal" style={{
           position: 'fixed',
           inset: 0,
           backgroundColor: 'rgba(0, 0, 0, 0.5)',

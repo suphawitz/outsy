@@ -124,10 +124,10 @@ export default function Home() {
   };
 
   return (
-    <div style={{ fontFamily: "'Prompt', -apple-system, sans-serif", backgroundColor: COLORS.bg, minHeight: '100vh', color: COLORS.textMain, paddingBottom: '70px' }}>
+    <div className="outsy-page page-home" style={{ fontFamily: "'Prompt', -apple-system, sans-serif", backgroundColor: COLORS.bg, minHeight: '100vh', color: COLORS.textMain, paddingBottom: '70px' }}>
       
       {/* 1. Hero Section */}
-      <section style={{
+      <section className="home-hero" style={{
         position: 'relative',
         minHeight: '520px',
         backgroundImage: 'linear-gradient(180deg, rgba(87, 62, 51, 0.45) 0%, rgba(87, 62, 51, 0.82) 100%), url("https://images.unsplash.com/photo-1528181304800-259b08848526?w=1600&auto=format&fit=crop&q=80")',
@@ -141,7 +141,7 @@ export default function Home() {
         textAlign: 'center'
       }}>
         {/* ป้ายเหลืองสด #fdd501 */}
-        <div style={{
+        <div className="responsive-panel" style={{
           display: 'inline-flex',
           alignItems: 'center',
           gap: '8px',
@@ -166,6 +166,7 @@ export default function Home() {
 
         {/* คอนเทนเนอร์กล่อง Search ลอย */}
         <form
+          className="home-search responsive-row responsive-panel"
           onSubmit={handleSearch}
           style={{
             position: 'absolute',
@@ -215,7 +216,7 @@ export default function Home() {
             </select>
           </div>
 
-          <div style={{ width: '1px', height: '34px', backgroundColor: COLORS.border }} />
+          <div className="search-divider" style={{ width: '1px', height: '34px', backgroundColor: COLORS.border }} />
 
           {/* ช่องเลือกวันที่เดินทาง */}
           <div style={{ flex: 1.2, textAlign: 'left' }}>
@@ -240,7 +241,7 @@ export default function Home() {
             />
           </div>
 
-          <div style={{ width: '1px', height: '34px', backgroundColor: COLORS.border }} />
+          <div className="search-divider" style={{ width: '1px', height: '34px', backgroundColor: COLORS.border }} />
 
           {/* ช่องงบประมาณ */}
           <div style={{ flex: 1.1, textAlign: 'left' }}>
@@ -305,7 +306,7 @@ export default function Home() {
 
       {/* 2. การ์ดจุดหมายปลายทางสายมู */}
       <section style={{ maxWidth: '1200px', margin: '90px auto 0 auto', padding: '0 24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '22px' }}>
+        <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '22px' }}>
           <div>
             
             <h2 style={{ fontSize: '24px', fontWeight: '900', margin: '0 0 4px 0', color: COLORS.brown }}>
@@ -347,9 +348,9 @@ export default function Home() {
         </div>
 
         {/* ตะแกรงการ์ดรูปภาพ 5 จังหวัด */}
-        <div style={{
+        <div className="responsive-grid" style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 210px), 1fr))',
           gap: '18px'
         }}>
           {provinces.map((p) => (
@@ -394,7 +395,7 @@ export default function Home() {
               }} />
 
               {/* ป้าย Badge สีเหลืองทอง #fdd501 */}
-              <div style={{
+              <div className="responsive-panel" style={{
                 position: 'absolute',
                 top: '14px',
                 left: '14px',
@@ -424,19 +425,19 @@ export default function Home() {
 
       {/* 3. แถบจุดเด่นและบริการ (Service Highlights) */}
       <section style={{ maxWidth: '1200px', margin: '40px auto 0 auto', padding: '0 24px' }}>
-        <div style={{
+        <div className="responsive-grid responsive-panel" style={{
           backgroundColor: COLORS.card,
           borderRadius: '24px',
           padding: '24px 28px',
           border: `1.5px solid ${COLORS.border}`,
           boxShadow: '0 4px 18px rgba(0,0,0,0.03)',
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))',
           gap: '20px'
         }}>
           {features.map((f, i) => (
-            <div key={i} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-              <div style={{
+            <div className="responsive-row" key={i} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+              <div className="responsive-row" style={{
                 width: '44px',
                 height: '44px',
                 borderRadius: '14px',
@@ -465,7 +466,7 @@ export default function Home() {
 
       {/* 4. รายการแพ็กเกจทัวร์แนะนำประจำสัปดาห์ */}
       <section style={{ maxWidth: '1200px', margin: '55px auto 40px auto', padding: '0 24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
+        <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
           <div>
             <h2 style={{ fontSize: '24px', fontWeight: '900', margin: '0 0 4px 0', color: COLORS.brown }}>
               แพ็กเกจทัวร์แนะนำ🌟
@@ -505,9 +506,9 @@ export default function Home() {
         {loading ? (
           <p style={{ textAlign: 'center', color: COLORS.textMuted, padding: '40px 0' }}>กำลังโหลดแพ็กเกจแนะนำจากระบบ...</p>
         ) : (
-          <div style={{
+          <div className="responsive-grid" style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
             gap: '24px'
           }}>
             {featuredPackages.map((pkg) => (
@@ -589,7 +590,7 @@ export default function Home() {
                   </p>
 
                   {/* แถบราคาและปุ่มกดจอง */}
-                  <div style={{
+                  <div className="responsive-row" style={{
                     marginTop: 'auto',
                     display: 'flex',
                     justifyContent: 'space-between',

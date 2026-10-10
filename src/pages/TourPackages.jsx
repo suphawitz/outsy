@@ -57,6 +57,7 @@ function normalizeDate(str) {
 
 export default function TourPackages() {
   const navigate = useNavigate();
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [searchParams] = useSearchParams();
 
   const initialProvince = searchParams.get('province') || 'ทั้งหมด';
@@ -206,7 +207,7 @@ export default function TourPackages() {
   }, [packages, schedules, selectedDate, selectedProvince, placeKeyword, selectedCategories, maxPrice]);
 
   return (
-    <div style={{ backgroundColor: COLORS.bg, minHeight: '100vh', padding: '115px 24px 80px 24px', fontFamily: "'Prompt', -apple-system, sans-serif", color: COLORS.textMain }}>
+    <div className="outsy-page page-tourpackages" style={{ backgroundColor: COLORS.bg, minHeight: '100vh', padding: '115px 24px 80px 24px', fontFamily: "'Prompt', -apple-system, sans-serif", color: COLORS.textMain }}>
       <div style={{ maxWidth: '1350px', margin: '0 auto' }}>
         
         {/* หัวข้อหน้า */}
@@ -220,7 +221,7 @@ export default function TourPackages() {
         </div>
 
         {/* แถบปุ่มเลือกจังหวัด แนวนอน */}
-        <div style={{ 
+        <div className="responsive-row province-chips" style={{
           display: 'flex', 
           gap: '12px', 
           overflowX: 'auto', 
@@ -266,10 +267,10 @@ export default function TourPackages() {
         </div>
 
         {/* โครงสร้าง 2 ฝั่ง: Sidebar ซ้าย + Cards ขวา */}
-        <div style={{ display: 'grid', gridTemplateColumns: '310px 1fr', gap: '28px', alignItems: 'start' }}>
+        <div className="responsive-grid page-columns" style={{ display: 'grid', gridTemplateColumns: '310px 1fr', gap: '28px', alignItems: 'start' }}>
           
           {/* ================= Sidebar ตัวกรอง ================= */}
-          <aside style={{
+          <aside className="responsive-sticky responsive-panel" style={{
             backgroundColor: COLORS.card,
             borderRadius: '24px',
             padding: '24px',
@@ -278,7 +279,7 @@ export default function TourPackages() {
             position: 'sticky',
             top: '95px'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ fontSize: '16px', fontWeight: 'bold', margin: 0, color: COLORS.brown }}>
                 🔍 ตัวกรองค้นหา
               </h3>
@@ -290,6 +291,10 @@ export default function TourPackages() {
               </button>
             </div>
 
+            <button type="button" className="filter-toggle" aria-expanded={filtersOpen} aria-controls="package-filter-fields" onClick={() => setFiltersOpen(!filtersOpen)}>
+              {filtersOpen ? 'ซ่อนตัวกรอง ▲' : 'เลือกตัวกรองเพิ่มเติม ▼'}
+            </button>
+            <div id="package-filter-fields" className={`package-filter-fields ${filtersOpen ? 'is-open' : ''}`}>
             {/* 1. เลือกจังหวัด */}
             <div style={{ marginBottom: '18px' }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', color: COLORS.brown }}>
@@ -318,7 +323,7 @@ export default function TourPackages() {
 
             {/* 2. เลือกวันที่เดินทาง */}
             <div style={{ marginBottom: '18px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <label style={{ fontSize: '13px', fontWeight: 'bold', color: COLORS.brown }}>
                   📅 วันที่เดินทาง
                 </label>
@@ -375,7 +380,7 @@ export default function TourPackages() {
 
             {/* 4. สไลเดอร์งบประมาณ */}
             <div style={{ marginBottom: '22px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <span style={{ fontSize: '13px', fontWeight: 'bold', color: COLORS.brown }}>💰 งบประมาณสูงสุด</span>
                 <span style={{ fontSize: '15px', fontWeight: '900', color: COLORS.red }}>
                   ฿{maxPrice.toLocaleString()}
@@ -390,7 +395,7 @@ export default function TourPackages() {
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
                 style={{ width: '100%', accentColor: COLORS.cyan, cursor: 'pointer' }}
               />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: COLORS.textMuted, marginTop: '4px' }}>
+              <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: COLORS.textMuted, marginTop: '4px' }}>
                 <span>฿1,000</span>
                 <span>฿10,000</span>
               </div>
@@ -463,6 +468,7 @@ export default function TourPackages() {
             >
               <span>🔄</span> รีเซ็ตค่าตัวกรองทั้งหมด
             </button>
+            </div>
           </aside>
 
           {/* ================= รายการการ์ดแพ็กเกจ ================= */}
@@ -470,7 +476,7 @@ export default function TourPackages() {
             {loading ? (
               <p style={{ textAlign: 'center', color: COLORS.textMuted, padding: '40px 0' }}>กำลังโหลดข้อมูลแพ็กเกจ...</p>
             ) : filteredPackages.length === 0 ? (
-              <div style={{ backgroundColor: COLORS.card, padding: '50px 20px', borderRadius: '24px', textAlign: 'center', border: `1.5px solid ${COLORS.border}` }}>
+              <div className="responsive-panel" style={{ backgroundColor: COLORS.card, padding: '50px 20px', borderRadius: '24px', textAlign: 'center', border: `1.5px solid ${COLORS.border}` }}>
                 <div style={{ fontSize: '38px', marginBottom: '8px' }}>🔍</div>
                 <p style={{ margin: '0 0 6px 0', fontWeight: 'bold', color: COLORS.brown }}>ไม่พบแพ็กเกจที่ตรงตามเงื่อนไข</p>
                 <p style={{ margin: 0, fontSize: '13px', color: COLORS.textMuted }}>
@@ -478,7 +484,7 @@ export default function TourPackages() {
                 </p>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(310px, 1fr))', gap: '24px' }}>
+              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 310px), 1fr))', gap: '24px' }}>
                 {filteredPackages.map((pkg) => {
                   const categoryName = pkg.category_name || 'สายมู & ขอพร';
                   
@@ -532,7 +538,7 @@ export default function TourPackages() {
                         />
 
                         {/* ป้ายรหัสแพ็กเกจ (ซ้ายบน) */}
-                        <div style={{
+                        <div className="responsive-panel" style={{
                           position: 'absolute',
                           top: '14px',
                           left: '14px',
@@ -550,7 +556,7 @@ export default function TourPackages() {
 
                         {/* Selected Date Badge (ขวาบน) */}
                         {selectedDate && (
-                          <div style={{
+                          <div className="responsive-row responsive-panel" style={{
                             position: 'absolute',
                             top: '14px',
                             right: '14px',
@@ -601,14 +607,14 @@ export default function TourPackages() {
 
                         {/* สถานะความจุและจำนวนที่นั่งคงเหลือ */}
                         {selectedDate && currentSchedule && (
-                          <div style={{
+                          <div className="responsive-panel" style={{
                             backgroundColor: '#f8fafc',
                             border: `1px solid ${COLORS.border}`,
                             borderRadius: '14px',
                             padding: '10px 14px',
                             marginBottom: '14px'
                           }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                            <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                               <span style={{ fontSize: '11px', color: COLORS.textMuted, fontWeight: '700' }}>
                                 สถานะที่นั่งรอบนี้:
                               </span>
@@ -638,7 +644,7 @@ export default function TourPackages() {
                         {/* Mini Progress Bar */}
                         {selectedDate && currentSchedule && (
                           <div style={{ marginBottom: '14px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: COLORS.textMuted, marginBottom: '3px', fontWeight: 'bold' }}>
+                            <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: COLORS.textMuted, marginBottom: '3px', fontWeight: 'bold' }}>
                               <span>ความจุทริป</span>
                               <span>{progressPercent}%</span>
                             </div>
@@ -655,7 +661,7 @@ export default function TourPackages() {
                         )}
 
                         {/* แถบราคาและปุ่มจอง */}
-                        <div style={{
+                        <div className="responsive-row" style={{
                           marginTop: 'auto',
                           display: 'flex',
                           justifyContent: 'space-between',

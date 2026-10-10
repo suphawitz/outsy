@@ -206,7 +206,7 @@ export default function BookingDetail() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: theme.bg, display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: "'Prompt', sans-serif" }}>
+      <div className="responsive-row outsy-page page-bookingdetail" style={{ minHeight: '100vh', backgroundColor: theme.bg, display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: "'Prompt', sans-serif" }}>
         <h3 style={{ color: theme.brown }}>กำลังโหลดรายละเอียดการจอง...</h3>
       </div>
     );
@@ -214,8 +214,8 @@ export default function BookingDetail() {
 
   if (error || !booking) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: theme.bg, padding: '120px 20px', textAlign: 'center', fontFamily: "'Prompt', sans-serif" }}>
-        <div style={{ maxWidth: '500px', margin: '0 auto', backgroundColor: '#fff', padding: '40px', borderRadius: '20px', border: `1px solid ${theme.border}` }}>
+      <div className="outsy-page page-bookingdetail" style={{ minHeight: '100vh', backgroundColor: theme.bg, padding: '120px 20px', textAlign: 'center', fontFamily: "'Prompt', sans-serif" }}>
+        <div className="responsive-panel" style={{ maxWidth: '500px', margin: '0 auto', backgroundColor: '#fff', padding: '40px', borderRadius: '20px', border: `1px solid ${theme.border}` }}>
           <h2 style={{ color: theme.brown, marginBottom: '10px' }}>ไม่พบรายการจอง</h2>
           <p style={{ color: theme.textMuted, lineHeight: 1.7 }}>{error || `ไม่พบรายการจอง #${bookingId}`}</p>
           <button onClick={() => navigate(-1)} style={{ backgroundColor: theme.brown, color: '#fff', border: 'none', padding: '12px 22px', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' }}>← กลับ</button>
@@ -225,7 +225,7 @@ export default function BookingDetail() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: theme.bg, padding: '100px 24px 60px', fontFamily: "'Prompt', sans-serif", color: '#2d3748' }}>
+    <div className="outsy-page page-bookingdetail" style={{ minHeight: '100vh', backgroundColor: theme.bg, padding: '100px 24px 60px', fontFamily: "'Prompt', sans-serif", color: '#2d3748' }}>
       <div style={{ maxWidth: '900px', margin: '0 auto' }}>
 
         <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: theme.brown, fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', marginBottom: '20px', padding: 0 }}>
@@ -234,7 +234,7 @@ export default function BookingDetail() {
 
         <div style={{ marginBottom: '25px' }}>
           <h1 style={{ margin: '8px 0 3px', color: theme.brown, fontSize: '26px' }}>รายละเอียดการจอง</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
+          <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
             <span style={{ color: theme.textMuted, fontSize: '14px' }}>หมายเลขการจอง:</span>
             <span style={{ backgroundColor: theme.yellow, color: theme.brown, padding: '2px 10px', borderRadius: '8px', fontSize: '15px', fontWeight: '900' }}>#{booking.booking_id}</span>
           </div>
@@ -253,7 +253,7 @@ export default function BookingDetail() {
 
           <div style={{ padding: '25px' }}>
             <div style={{ color: theme.textMuted, fontSize: '12px', marginBottom: '5px' }}>แพ็กเกจทัวร์ที่จอง</div>
-            <div onClick={() => { if (booking.package_id) navigate(`/package/${booking.package_id}`); }} style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', cursor: booking.package_id ? 'pointer' : 'default', marginBottom: '15px' }}>
+            <div className="responsive-row" onClick={() => { if (booking.package_id) navigate(`/package/${booking.package_id}`); }} style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', cursor: booking.package_id ? 'pointer' : 'default', marginBottom: '15px' }}>
               <span style={{ backgroundColor: '#fffdf0', color: theme.brown, border: `1.5px solid ${theme.yellow}`, padding: '3px 10px', borderRadius: '8px', fontSize: '13px', fontWeight: '900' }}>📍 {booking.package_id}</span>
               <h2 style={{ margin: 0, color: theme.brown, fontSize: '22px', fontWeight: '800' }}>{packageData?.package_name || `แพ็กเกจ ${booking.package_id}`}</h2>
             </div>
@@ -263,7 +263,7 @@ export default function BookingDetail() {
               <p style={{ margin: 0, color: theme.textMuted, fontSize: '14px', lineHeight: 1.8, whiteSpace: 'pre-line' }}>{packageData?.description || 'ไม่มีรายละเอียดแพ็กเกจ'}</p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '12px' }}>
               <PackageInfo title="ระยะเวลา" value={packageData?.duration || '-'} />
               <PackageInfo title="ราคาแพ็กเกจ" value={packageData?.price != null ? `฿${Number(packageData.price).toLocaleString()} / คน` : '-'} />
               <PackageInfo title="จำนวนสูงสุด" value={packageData?.max_people != null ? `${packageData.max_people} คน` : '-'} />
@@ -273,10 +273,10 @@ export default function BookingDetail() {
         </div>
 
         {/* BOOKING INFORMATION */}
-        <div style={{ backgroundColor: '#fff', borderRadius: '20px', border: `1px solid ${theme.border}`, padding: '25px', marginBottom: '20px' }}>
+        <div className="responsive-panel" style={{ backgroundColor: '#fff', borderRadius: '20px', border: `1px solid ${theme.border}`, padding: '25px', marginBottom: '20px' }}>
           <h2 style={{ margin: '0 0 20px', color: theme.brown, fontSize: '20px' }}>ข้อมูลการจอง</h2>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '25px' }}>
+          <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '20px', marginBottom: '25px' }}>
             <Info label="เลขที่การจอง" value={`#${booking.booking_id}`} />
             <Info label="วันที่ทำรายการ" value={formatDate(booking.created_at)} />
             <Info label="รอบเดินทาง" value={booking.travel_date || '-'} />
@@ -287,17 +287,17 @@ export default function BookingDetail() {
           </div>
 
           <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: '22px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '8px' }}>
+            <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '8px' }}>
               <h3 style={{ margin: 0, color: theme.brown, fontSize: '17px' }}>ผู้เดินทางในออเดอร์นี้</h3>
               <span style={{ backgroundColor: '#2bcdd1', color: theme.brown, borderRadius: '20px', padding: '5px 14px', fontSize: '12px', fontWeight: '800' }}>{totalPeople} คน</span>
             </div>
 
-            <div style={{ backgroundColor: '#fffdf0', border: `2px solid ${theme.yellow}`, borderRadius: '14px', padding: '18px', marginBottom: additionalTravelers.length > 0 ? '15px' : '0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <div style={{ width: '30px', height: '30px', borderRadius: '50%', backgroundColor: '#2bcdd1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '800', color: '#573e33', flexShrink: 0 }}>1</div>
+            <div className="responsive-panel" style={{ backgroundColor: '#fffdf0', border: `2px solid ${theme.yellow}`, borderRadius: '14px', padding: '18px', marginBottom: additionalTravelers.length > 0 ? '15px' : '0' }}>
+              <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <div className="responsive-row" style={{ width: '30px', height: '30px', borderRadius: '50%', backgroundColor: '#2bcdd1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '800', color: '#573e33', flexShrink: 0 }}>1</div>
                 <div style={{ color: '#573e33', fontSize: '14px', fontWeight: '800' }}>ผู้เดินทางคนที่ 1 (ผู้จอง)</div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+              <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '12px' }}>
                 <TravelerInfo label="ชื่อ-นามสกุล" value={booking.customer_name || '-'} />
                 <TravelerInfo label="เบอร์โทรศัพท์" value={booking.customer_phone || '-'} />
                 <TravelerInfo label="อีเมล" value={booking.customer_email || '-'} />
@@ -315,9 +315,9 @@ export default function BookingDetail() {
         </div>
 
         {/* PAYMENT */}
-        <div style={{ backgroundColor: '#fff', borderRadius: '20px', border: `1px solid ${theme.border}`, padding: '25px', marginBottom: '20px' }}>
+        <div className="responsive-panel" style={{ backgroundColor: '#fff', borderRadius: '20px', border: `1px solid ${theme.border}`, padding: '25px', marginBottom: '20px' }}>
           <h2 style={{ margin: '0 0 20px', color: theme.brown, fontSize: '20px' }}>การชำระเงิน</h2>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
+          <div className="responsive-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
             <div>
               <div style={{ color: theme.textMuted, fontSize: '12px' }}>สถานะการชำระเงิน</div>
               <div style={{ color: statusColor, fontWeight: 'bold', marginTop: '5px' }}>{statusText}</div>
@@ -331,26 +331,26 @@ export default function BookingDetail() {
         </div>
 
         {/* BOOKING STATUS */}
-        <div style={{ backgroundColor: '#fff', borderRadius: '20px', border: `1px solid ${theme.border}`, padding: '25px', marginBottom: '20px' }}>
+        <div className="responsive-panel" style={{ backgroundColor: '#fff', borderRadius: '20px', border: `1px solid ${theme.border}`, padding: '25px', marginBottom: '20px' }}>
           <h2 style={{ margin: '0 0 28px', color: theme.brown, fontSize: '20px' }}>สถานะการจอง</h2>
 
           {currentStep === 0 ? (
-            <div style={{ backgroundColor: '#fef2f2', color: '#dc2626', padding: '15px', borderRadius: '10px', fontWeight: 'bold', textAlign: 'center' }}>
+            <div className="responsive-panel" style={{ backgroundColor: '#fef2f2', color: '#dc2626', padding: '15px', borderRadius: '10px', fontWeight: 'bold', textAlign: 'center' }}>
               การจองนี้ถูกยกเลิก
             </div>
           ) : (
             <div style={{ width: '100%', overflowX: 'auto', padding: '5px 0 8px' }}>
-              <div style={{ minWidth: '600px', position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', alignItems: 'start' }}>
-                <div style={{ position: 'absolute', top: '9px', left: '12.5%', right: '12.5%', height: '2px', backgroundColor: '#e5e7eb', zIndex: 0 }} />
-                <div style={{ position: 'absolute', top: '9px', left: '12.5%', width: currentStep === 1 ? '0%' : currentStep === 2 ? '25%' : currentStep === 3 ? '50%' : '75%', height: '2px', backgroundColor: theme.red, zIndex: 1, transition: 'width 0.3s ease' }} />
+              <div className="responsive-grid booking-timeline" style={{ minWidth: '600px', position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', alignItems: 'start' }}>
+                <div className="timeline-connector" style={{ position: 'absolute', top: '9px', left: '12.5%', right: '12.5%', height: '2px', backgroundColor: '#e5e7eb', zIndex: 0 }} />
+                <div className="timeline-connector" style={{ position: 'absolute', top: '9px', left: '12.5%', width: currentStep === 1 ? '0%' : currentStep === 2 ? '25%' : currentStep === 3 ? '50%' : '75%', height: '2px', backgroundColor: theme.red, zIndex: 1, transition: 'width 0.3s ease' }} />
 
                 {statusSteps.map((step, index) => {
                   const stepNumber = index + 1;
                   const active = currentStep >= stepNumber;
                   return (
-                    <div key={step} style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
-                      <div style={{ width: '18px', height: '18px', margin: '0 auto 12px', borderRadius: '50%', backgroundColor: active ? theme.red : '#e5e7eb', border: active ? `2.5px solid ${theme.red}` : '2px solid #d1d5db', boxSizing: 'border-box', transition: 'all 0.3s ease' }} />
-                      <div style={{ fontSize: '13px', color: active ? theme.brown : '#9ca3af', fontWeight: active ? 'bold' : 'normal', whiteSpace: 'nowrap' }}>{step}</div>
+                    <div className="timeline-step" key={step} style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
+                      <div className="timeline-dot" style={{ width: '18px', height: '18px', margin: '0 auto 12px', borderRadius: '50%', backgroundColor: active ? theme.red : '#e5e7eb', border: active ? `2.5px solid ${theme.red}` : '2px solid #d1d5db', boxSizing: 'border-box', transition: 'all 0.3s ease' }} />
+                      <div className="timeline-label" style={{ fontSize: '13px', color: active ? theme.brown : '#9ca3af', fontWeight: active ? 'bold' : 'normal', whiteSpace: 'nowrap' }}>{step}</div>
                     </div>
                   );
                 })}
@@ -359,7 +359,7 @@ export default function BookingDetail() {
           )}
 
           {currentStep !== 0 && (
-            <div style={{ marginTop: '25px', padding: '12px 15px', backgroundColor: statusBg, color: statusColor, borderRadius: '10px', textAlign: 'center', fontWeight: 'bold', fontSize: '14px' }}>
+            <div className="responsive-panel" style={{ marginTop: '25px', padding: '12px 15px', backgroundColor: statusBg, color: statusColor, borderRadius: '10px', textAlign: 'center', fontWeight: 'bold', fontSize: '14px' }}>
               สถานะปัจจุบัน: {statusText}
             </div>
           )}
@@ -378,7 +378,7 @@ export default function BookingDetail() {
 
 function PackageInfo({ title, value }) {
   return (
-    <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '14px' }}>
+    <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '14px' }}>
       <div style={{ fontSize: '11px', color: '#738096', marginBottom: '5px' }}>{title}</div>
       <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#573e33' }}>{value}</div>
     </div>
@@ -405,12 +405,12 @@ function TravelerInfo({ label, value }) {
 
 function TravelerCard({ traveler, index }) {
   return (
-    <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e6ebf1', borderRadius: '14px', padding: '16px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-        <div style={{ width: '30px', height: '30px', borderRadius: '50%', backgroundColor: '#2bcdd1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '800', color: '#573e33', flexShrink: 0 }}>{index}</div>
+    <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', border: '1px solid #e6ebf1', borderRadius: '14px', padding: '16px' }}>
+      <div className="responsive-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+        <div className="responsive-row" style={{ width: '30px', height: '30px', borderRadius: '50%', backgroundColor: '#2bcdd1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '800', color: '#573e33', flexShrink: 0 }}>{index}</div>
         <div style={{ color: '#573e33', fontSize: '14px', fontWeight: '800' }}>ผู้เดินทางคนที่ {index}</div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+      <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '12px' }}>
         <TravelerInfo label="ชื่อ-นามสกุล" value={traveler.full_name || '-'} />
         <TravelerInfo label="เบอร์โทรศัพท์" value={traveler.phone || '-'} />
         <div style={{ display: 'none' }} />

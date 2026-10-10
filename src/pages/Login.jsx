@@ -185,7 +185,7 @@ export default function Login() {
 
   return (
     <div
-      className="login-page-wrapper"
+      className="login-page-wrapper responsive-row outsy-page page-login"
       style={{
         minHeight: '100vh',
 
@@ -287,7 +287,7 @@ export default function Login() {
       ========================= */}
 
       <div
-        className="login-page-card"
+        className="login-page-card responsive-panel"
         style={{
           width: '100%',
 
@@ -479,7 +479,7 @@ export default function Login() {
         ========================= */}
 
         {mode !== 'forgot' && (
-          <div
+          <div className="responsive-panel"
             style={{
               display: 'grid',
 
@@ -609,7 +609,7 @@ export default function Login() {
         ========================= */}
 
         {errorMsg && (
-          <div
+          <div className="responsive-row responsive-panel"
             style={{
               background:
                 '#fff1f1',
@@ -660,7 +660,7 @@ export default function Login() {
             FORM
         ========================= */}
 
-        <form
+        <form className="responsive-row"
           onSubmit={handleSubmit}
 
           style={{
@@ -890,7 +890,7 @@ export default function Login() {
           ========================= */}
 
           {mode === 'signin' && (
-            <div
+            <div className="responsive-row"
               style={{
                 display: 'flex',
 
@@ -1125,7 +1125,7 @@ export default function Login() {
             SERVICE INFORMATION
         ========================= */}
 
-        <div
+        <div className="responsive-row"
           style={{
             marginTop:
               '24px',
@@ -1194,7 +1194,7 @@ export default function Login() {
       ========================= */}
 
       {toastMsg && (
-        <div
+        <div className="responsive-panel responsive-row"
           style={{
             position:
               'fixed',
@@ -1270,7 +1270,7 @@ export default function Login() {
 
           @media (max-width: 700px) {
             .login-page-wrapper {
-              padding: 25px 20px !important;
+              padding: 145px 20px 32px !important;
               justify-content: center !important;
             }
 
@@ -1283,7 +1283,7 @@ export default function Login() {
 
           @media (max-width: 480px) {
             .login-page-wrapper {
-              padding: 18px 12px !important;
+              padding: 145px 12px 24px !important;
             }
 
             .login-page-card {

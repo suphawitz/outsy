@@ -50,7 +50,7 @@ export default function UpdatePassword() {
 
   const fieldStyle = { display: 'block', width: '100%', padding: 12, margin: '8px 0 20px', boxSizing: 'border-box' };
   return (
-    <main style={{ maxWidth: 440, margin: '60px auto', padding: 24, background: '#fffdf9', borderRadius: 20 }}>
+    <main className="responsive-panel" style={{ maxWidth: 440, margin: '60px auto', padding: 24, background: '#fffdf9', borderRadius: 20 }}>
       <h1>ตั้งรหัสผ่านใหม่</h1>
       {message && <p role="status">{message}</p>}
       {ready && !done && <form onSubmit={submit}>

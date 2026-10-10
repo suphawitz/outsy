@@ -19,7 +19,7 @@ export default function App() {
       <Navbar />
 
       {/* ระบบสลับหน้าเว็บ */}
-      <Suspense fallback={<div role="status" style={{ padding: 40 }}>กำลังโหลด...</div>}>
+      <Suspense fallback={<div className="outsy-page" role="status" style={{ padding: '120px 24px 40px' }}>กำลังโหลด...</div>}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/packages" element={<TourPackages />} />
@@ -32,7 +32,7 @@ export default function App() {
         <Route path="/booking-detail/:bookingId" element={<BookingDetail />} />
         <Route path="/login" element={<Login />} />
         <Route path="/update-password" element={<UpdatePassword />} />
-        <Route path="*" element={<div style={{ padding: 40 }}><h1>ไม่พบหน้าที่ต้องการ</h1><a href="/">กลับหน้าแรก</a></div>} />
+        <Route path="*" element={<div className="outsy-page" style={{ padding: '120px 24px 40px' }}><h1>ไม่พบหน้าที่ต้องการ</h1><a href="/">กลับหน้าแรก</a></div>} />
         
         {/* ล็อกเส้นทาง Admin เฉพาะบัญชีที่มี role เป็น Admin เท่านั้น */}
         <Route path="/admin" element={
