@@ -1,12 +1,9 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../client';
-import { authenticatedUser } from '../services/booking';
-import { thaiError } from '../lib/errors';
 
 export default function BookingDetail() {
   const navigate = useNavigate();
-  const loadGeneration = useRef(0);
   const { bookingId } = useParams();
 
   const [booking, setBooking] = useState(null);
@@ -25,13 +22,16 @@ export default function BookingDetail() {
     textMuted: '#738096',
   };
 
-  const loadBooking = useCallback(async () => {
-    const request = ++loadGeneration.current;
+  useEffect(() => {
+    if (bookingId) {
+      loadBooking();
+    }
+  }, [bookingId]);
+
+  async function loadBooking() {
     try {
       setLoading(true);
       setError('');
-      const user = await authenticatedUser();
-      if (request !== loadGeneration.current) return;
       setTravelers([]);
       setPackageData(null);
 
@@ -42,10 +42,10 @@ export default function BookingDetail() {
         .from('bookings')
         .select('*')
         .eq('booking_id', bookingId)
-        .eq('user_id', user.id)
         .single();
 
       if (bookingError) {
+        console.error('Booking error:', bookingError);
         throw bookingError;
       }
 
@@ -53,7 +53,6 @@ export default function BookingDetail() {
         throw new Error('ไม่พบข้อมูลการจอง');
       }
 
-      if (request !== loadGeneration.current) return;
       setBooking(bookingData);
 
       const {
@@ -69,8 +68,8 @@ export default function BookingDetail() {
           ascending: true,
         });
 
-      if (request !== loadGeneration.current) return;
       if (travelerError) {
+        console.error('ไม่สามารถโหลด booking_travelers:', travelerError);
         setTravelers([]);
       } else {
         setTravelers(travelerData || []);
@@ -86,30 +85,23 @@ export default function BookingDetail() {
           .eq('package_id', bookingData.package_id)
           .single();
 
-        if (request !== loadGeneration.current) return;
         if (packageError) {
+          console.error('Package error:', packageError);
           setPackageData(null);
         } else {
           setPackageData(packageDataResult);
         }
       }
     } catch (err) {
-      if (request === loadGeneration.current) setError(thaiError(err, 'ไม่พบการจองนี้ หรือคุณไม่มีสิทธิ์เข้าถึง'));
+      console.error('Booking detail error:', err);
+      setError(
+        err?.message ||
+          'ไม่สามารถโหลดรายละเอียดการจองได้'
+      );
     } finally {
-      if (request === loadGeneration.current) setLoading(false);
+      setLoading(false);
     }
-  }, [bookingId]);
-
-  useEffect(() => {
-    if (bookingId) {
-      loadBooking();
-    }
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {
-      if (event === 'SIGNED_OUT') { loadGeneration.current++; setBooking(null); setTravelers([]); navigate('/login', { replace: true }); }
-    });
-    const generation = loadGeneration;
-    return () => { generation.current++; subscription.unsubscribe(); };
-  }, [bookingId, loadBooking, navigate]);
+  }
 
   // =====================================================
   // BOOKING STATUS (อัปเดตให้รองรับ ทริปเสร็จสิ้น และ คืนเงินเรียบร้อยแล้ว)

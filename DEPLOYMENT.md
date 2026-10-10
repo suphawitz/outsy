@@ -1,60 +1,99 @@
-# OUTSY — เตรียม deploy Vercel
+# เตรียม deploy OUTSY บน Vercel
 
-## สถานะ 10 ตุลาคม 2026
+## สถานะและขอบเขต
 
-Frontend เปลี่ยนการจองและการเงินไปใช้ trusted RPC แล้ว เอกสารใช้ private Storage download และ QR ระบุว่าเป็นตัวอย่าง ไม่ใช้รับเงินจริง
-ยังไม่พร้อมเปิด flow จองครบวงจรจนกว่าจะ review/อนุมัติและติดตั้ง SQL พร้อมทดสอบบน staging ไม่มีการรัน migration, commit, push หรือ deploy ในงานนี้
+เว็บนี้ใช้ React + Vite และเชื่อม Supabase โดยตรง คง QR จำลองตามคำขอของเจ้าของโปรเจกต์
+การ deploy ครั้งนี้เป็นเว็บสาธิต ยังไม่ถือเป็นการรับรองระบบรับเงินจริง
 
-## ขั้นตอนก่อน deploy
+## ตั้งค่า Vercel
 
-1. อ่าน [schema review](docs/SCHEMA_REVIEW.md) และ [SQL review package](supabase/migrations/README.md) เทียบกับฐานข้อมูลล่าสุด
-2. อนุมัติ migration แยกต่างหาก แล้วทดสอบบน staging ตามลำดับ 001 → 002 → 003 ห้ามข้าม preflight ที่แจ้งข้อมูลเก่าไม่สอดคล้อง
-3. ตรวจและจัดการข้อมูลเก่า: สถานะค้าง, generator ของ ID, จำนวนที่นั่ง, หลักฐานชำระเงิน และภาพประชาสัมพันธ์ที่เคยเก็บใน slips ตามคู่มือ migration
-4. รัน [acceptance tests](docs/SECURITY_TESTS.md) ด้วยลูกค้า A/B/admin ก่อนอนุมัติใช้ฐานข้อมูล production
-5. เมื่อตรวจผ่านแล้วจึงติดตั้ง SQL ที่อนุมัติบน production และ deploy frontend เวอร์ชันนี้ในช่วง maintenance เพื่อไม่ให้ frontend เก่าเขียนข้อมูลระหว่างเปลี่ยนระบบ
+เปิด https://vercel.com/su-phawit/outsy แล้วตรวจ Settings:
 
-## Vercel
+1. Git: เชื่อม repository `suphawitz/outsy` และเลือก branch ที่มีการแก้ไขครั้งนี้
+2. Build and Deployment: preset Vite, root directory root ของ repo, Node.js 22.x
+3. Install command `npm ci`, build command `npm run build`, output `dist`
+4. Environment Variables: เพิ่ม `VITE_SUPABASE_URL` และ `VITE_SUPABASE_ANON_KEY`
+   คัดลอกค่าจาก `.env.local` ของเครื่องนี้ หรือ Supabase Project Settings > API / API Keys
+   เลือก Production และ Preview ตามที่ใช้ ห้ามใช้ service_role/secret key
+5. หลัง push โค้ดและตั้ง env แล้วจึง deploy/redeploy (ค่า env ถูกฝังตอน build)
+6. เปิด URL จริงและ refresh `/packages`, `/login`, `/update-password` ต้องไม่เจอ Vercel 404
+   หน้า `/update-password` ที่เปิดเองโดยไม่มี session ควรแจ้งว่าลิงก์ไม่ถูกต้อง/หมดอายุ
+7. ตรวจโลโก้ พื้นหลัง login รายการทัวร์ และ Console/Network ไม่ควรมีไฟล์ JS/รูปสำคัญ 404
 
-เปิด [โปรเจกต์ outsy](https://vercel.com/su-phawit/outsy) ตรวจด้วยบัญชีเจ้าของ:
+## ตรวจ Supabase ด้วยตัวเอง
 
-- Git repository `suphawitz/outsy` และ branch ที่มีการแก้ไขนี้
-- Preset Vite, root directory ราก repo, Node 22.x
-- Install `npm ci`, build `npm run build`, output `dist`
-- ตั้ง `VITE_SUPABASE_URL` และ `VITE_SUPABASE_ANON_KEY` ตาม `.env.example` สำหรับ Production/Preview ที่ใช้ ห้ามใส่ service_role หรือ secret key ใน VITE variables
-- ค่า environment ถูกฝังตอน build เมื่อเปลี่ยนต้อง redeploy
-- Dashboard ยังไม่ได้ยืนยันจากบัญชีที่ล็อกอิน และยังไม่ได้ deploy
+### 1. ตรวจ URL และอีเมล
 
-## Supabase ตรวจเอง
+Authentication > URL Configuration:
+- Site URL = URL เว็บ production จริงจาก Vercel
+- Redirect URLs ต้องมี `https://<โดเมน>/login` และ `https://<โดเมน>/update-password`
+- เพิ่ม `http://localhost:5173/login` และ `/update-password` ถ้าทดสอบในเครื่อง
+- ถ้าใช้ Preview ให้เพิ่ม URL Preview ที่ต้องการทดสอบด้วย
 
-Authentication → URL Configuration:
+Authentication > Sign In / Providers > Email:
+- ตรวจว่าเปิด Email provider และตั้ง Confirm email ตามที่ต้องการ
+- API ที่ตรวจครั้งนี้รายงาน email autoconfirm เปิดอยู่ (สมัครแล้วไม่ต้องยืนยันอีเมล)
+- ถ้าเปิดยืนยันอีเมลภายหลัง ต้องตรวจ trigger สร้าง public.users เพราะ frontend insert
+  ขณะสมัครอาจไม่มี session และถูก RLS ปฏิเสธ
+- ใช้บัญชีทดสอบสมัคร/เข้าสู่ระบบ/ออกจากระบบ/ลืมรหัสผ่าน และเปิดอีเมลจริงเพื่อเปลี่ยนรหัสผ่าน
+- ตรวจการส่งอีเมลและข้อจำกัด SMTP ก่อนให้ผู้ใช้หลายคนทดลอง
 
-- Site URL เป็นโดเมน production จริง
-- Redirect URLs เพิ่ม `https://<โดเมน>/login` และ `https://<โดเมน>/update-password`
-- เพิ่ม localhost/Preview เฉพาะที่ต้องใช้ทดสอบ
+### 2. ตรวจตารางและ RLS
 
-Authentication → Email:
+เปิด SQL Editor แล้ววางเนื้อหา `supabase/deployment-audit.sql` และ Run
+ไฟล์นี้อ่านการตั้งค่าอย่างเดียว ไม่เปลี่ยนข้อมูลหรือ policy
 
-- ตรวจ Email provider, Confirm email และ SMTP/ข้อจำกัดการส่งอีเมลตามการใช้งานจริง
-- สมัครต้องสร้าง public.users ผ่าน `handle_new_user` โดย role เป็น customer ไม่อาศัย frontend insert
-- ทดสอบทั้งกรณียืนยันอีเมลและมี session ทันที รวมถึง duplicate signup และ recovery หมดอายุ
+- ตารางที่แอปใช้ต้องมีครบ: users, Tour_Packages, Tour_Schedules, Package_Itineraries,
+  bookings, booking_travelers, refund_requests
+- ตารางข้อมูลลูกค้าต้องเปิด RLS (`rowsecurity = true`) และมี policy ตามสิทธิ์
+- ลูกค้าต้องอ่าน/แก้ไขเฉพาะข้อมูลของตัวเอง โดยผูกกับ `auth.uid()`
+- users ต้องไม่เปิดให้ลูกค้าแก้ role เป็น admin หรือสร้างโปรไฟล์ admin เอง
+- bookings/booking_travelers/refund_requests ต้องไม่เปิด SELECT/UPDATE ทั้งตารางให้ทุกคน
+- Tour_Packages/Package_Itineraries เปิดอ่านสาธารณะได้ แต่การแก้ไขต้องจำกัด admin
+- Tour_Schedules ต้องจำกัดการแก้จำนวนที่นั่งให้กระบวนการที่เชื่อถือได้
+- ตรวจ policies ทั้ง `USING` และ `WITH CHECK`; RLS เปิดอย่างเดียวไม่ได้ยืนยันว่าปลอดภัย
+- อย่าแก้เป็น `USING (true)` ทุกตารางหรือปิด RLS เพื่อแก้ error
 
-SQL Editor:
+ทดสอบด้วยบัญชีลูกค้า A, ลูกค้า B และ admin: ลูกค้า A ต้องดู/แก้การจองของ B ไม่ได้
+รวมถึงการเปิด `/booking-detail/<id ของ B>` โดยตรง และการดูสลิป/สมุดบัญชีของ B
+การซ่อนหน้า admin ใน React ไม่ได้แทนการตรวจสิทธิ์ในฐานข้อมูล
 
-- รัน `supabase/deployment-audit.sql` เพื่ออ่านสถานะหลัง migration (ไม่มีการแก้ข้อมูล)
-- ตรวจ RLS, grants, RPC execution rights และ trigger ตาม acceptance tests ไม่ถือว่าเปิด RLS อย่างเดียวเพียงพอ
-- users ต้องแก้ได้เฉพาะ username; การเปลี่ยน role ต้องไม่ทำได้ด้วย customer JWT
+### 3. ตรวจ Storage
 
-Storage:
+Storage > Buckets:
+- `tourist_images`: มีภาพทัวร์และอ่านได้ตามที่เว็บต้องใช้
+- `slips`: ตรวจ upload/read/update policies, ขนาดไฟล์และชนิดไฟล์ที่อนุญาต
+- โค้ดปัจจุบันใช้ public URL สำหรับสลิปและรูปสมุดบัญชี จึงควรใช้ข้อมูลจำลองในการสาธิต
+- ก่อนเก็บเอกสารจริง ควรย้ายไป private bucket + signed URL และตรวจเจ้าของ/admin
+  ให้ครบทุกหน้าที่ดูไฟล์ การเปลี่ยน bucket เป็น private อย่างเดียวจะทำให้ viewer เดิมใช้ไม่ได้
 
-- slips ต้อง private, JPEG/PNG/WebP ไม่เกิน 5 MB และ owner/admin อ่านได้ตาม booking
-- tourist_images เป็น public สำหรับภาพประชาสัมพันธ์เท่านั้น เขียนโดย admin
-- ภาพเก่าใน slips ต้องตรวจประเภทก่อนย้าย ห้ามย้ายสลิปหรือสมุดบัญชีไป public
+### 4. ทดสอบ flow หลัก
 
-## ตรวจหลัง deploy
+- หน้าแรก/แพ็กเกจ/รายละเอียด/รอบเดินทางแสดงข้อมูลจริงได้
+- สมัครสมาชิกแล้วมี public.users ที่ผูก auth_id ถูกต้อง
+- จองด้วยข้อมูลทดสอบ แล้วพบรายการในประวัติและหน้า admin
+- อัปโหลดสลิปจำลอง ตรวจยอด เปลี่ยนวัน ยกเลิกและขอคืนเงินได้ตามสิทธิ์
+- ออกจากระบบแล้วเข้า admin ต้องถูกส่งไป login; ลูกค้าปกติต้องเข้า admin ไม่ได้
+- ใช้มือถือทดสอบ login และขั้นตอนจอง
 
-เปิด/refresh `/packages`, `/login`, `/update-password` ต้องไม่เจอ Vercel 404 ตรวจ assets และ Console/Network รวมถึงมือถือ ใช้บัญชี A/B/admin ทดสอบ flow และ ownership ตามเอกสาร tests อีกครั้ง
+## ข้อจำกัดก่อนใช้เป็นระบบจริง
 
-## ผลตรวจและข้อจำกัด
+ราคา จำนวนที่นั่ง และรายการจองยังถูกบันทึกหลายคำสั่งจาก browser ต้องออกแบบ transaction/RPC
+ฝั่งฐานข้อมูลเพื่อกันการแก้ราคา การจองเกินที่นั่ง และการบันทึกสำเร็จเพียงบางส่วน
+ต้องเห็น schema/constraints/policies จริงก่อนทำ migration ที่เหมาะสม จึงไม่ได้เดาและแก้ฐานข้อมูล
+ในรอบเตรียม deploy นี้ QR เดิมเป็นข้อความจำลอง ไม่ใช่ payload รับชำระ PromptPay จริง
 
-ผลตรวจโค้ดและคำสั่งล่าสุดอยู่ใน [รายงาน remediation](docs/REMEDIATION.md) SQL ตรวจ grammar เท่านั้น ไม่ได้ execute และยังไม่ยืนยัน concurrency/สิทธิ์บนฐานข้อมูลจริง
-QR และสถานะคืนเงินเป็น flow สาธิต ไม่มีการโอนเงินจริง ไม่มีระบบหมดอายุการกันที่นั่งอัตโนมัติ ผู้ดูแลต้องยกเลิกรายการค้าง
+## ผลตรวจรอบนี้ (10 ตุลาคม 2026)
+
+- Clean install จาก final lockfile ผ่านด้วย Node.js 22.18.0
+- Production build ด้วย Vite 6.4.4 ผ่าน และแยก chunk แต่ละหน้าแล้ว
+- npm audit บน final lockfile: 0 vulnerabilities ณ เวลาตรวจ
+- Browser smoke check: หน้า login แสดงได้, โลโก้โหลดสำเร็จ,
+  หน้า update-password เมื่อไม่มี session แสดงข้อความให้ขอลิงก์ใหม่
+- Supabase REST ตรวจทั้ง 7 ตารางด้วย limit=0 ได้ HTTP 200
+  ไม่ได้ดึงข้อมูลลูกค้า และไม่ได้ทดสอบ ownership/RLS จากการตรวจนี้
+- Supabase Auth settings ตอบ HTTP 200: เปิด email, เปิด signup, email autoconfirm เปิด
+- Vercel Dashboard ต้องล็อกอิน จึงยังไม่ได้ยืนยันการตั้งค่าหรือทำ deployment
+- ยังไม่ได้ทดสอบอีเมล recovery จริง, สิทธิ์หลายบัญชี หรือ flow จองครบวงจร
+- เอา node_modules ออกจาก Git index แล้ว แต่เก็บ dependency ในเครื่องไว้
+  การลบไฟล์เหล่านี้จาก repository ถูก stage ไว้สำหรับ commit ครั้งถัดไป
