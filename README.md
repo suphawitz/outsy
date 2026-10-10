@@ -1,58 +1,28 @@
 # OUTSY
 
-React + Vite frontend with Supabase Auth, database and Storage.
+React + Vite frontend with Supabase Auth, database and Storage. Use Node 22.
 
-## Local development
+## Development
 
-Use Node.js 22. Run `npm ci`, copy `.env.example` to `.env.local`, and set the
-Supabase project URL and public anon key. Run `npm run dev`.
-Never put a Supabase service-role or secret key in a `VITE_` variable.
+Run `npm ci`, copy `.env.example` to `.env.local` and configure the project URL and
+public anon key. Never expose service_role/secret keys in VITE variables.
+Run `npm run dev`; verify with `npm run lint`, `npm test`, `npm run build`.
 
-## Vercel
+## Deployment and database review
 
-Import this repository with preset **Vite**, root directory **.**, install command
-`npm ci`, build command `npm run build`, output directory `dist`, Node.js **22.x**.
-Configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in Vercel for each needed
-environment before building. Redeploy after changing environment variables.
-`.env.local` is local only and must not be committed.
-`vercel.json` sends extensionless routes to the SPA while leaving static assets alone.
+See [DEPLOYMENT.md](DEPLOYMENT.md) for Vercel settings and Supabase checks.
+The frontend now requires trusted booking RPCs and private Storage policies from the
+[review package](supabase/migrations/README.md). These draft migrations have NOT
+been executed. Review against the actual schema, obtain explicit approval, test on
+staging, then coordinate production migration/deployment. There is no insecure direct
+write fallback if an RPC is missing. These migrations modify an existing verified
+schema; they are not a fresh database bootstrap.
 
-Run `npm run build` and `npm run preview` to inspect the production output locally.
+Signup profiles come from the database trigger, roles from public.users by auth_id,
+and booking ownership from auth.uid(). Booking creation/prices/capacity/transitions
+use trusted RPCs. Receipts/bankbooks use authenticated private downloads; public
+marketing images belong in tourist_images. QR remains a labelled simulation.
 
-## Required Supabase checks before customer launch
-
-Run `supabase/deployment-audit.sql` in the Supabase SQL Editor (read-only).
-Review RLS on users, bookings, booking_travelers, refund_requests and tour tables.
-Customers must not change their role, other users' records, trusted prices,
-payment approval, refund approval or schedule capacity. Admin authorization must
-be enforced in database policies, not only by React routing.
-
-Verify a database trigger creates the public user profile when email confirmation
-is required: signup may have no session and the frontend profile insert can be denied.
-Verify existing schema, foreign keys, constraints, admin account and sample tour data.
-The repo has no authoritative schema migration to recreate the database.
-
-Set Supabase Authentication > URL Configuration:
-- Site URL: the production origin, e.g. `https://your-app.vercel.app`.
-- Redirect URLs: the production `/login` and `/update-password` URLs, plus explicit
-  development/preview origins as needed.
-- Verify email delivery/SMTP, signup confirmation and recovery using a test account.
-
-Storage `tourist_images` contains public tour images. Verify its read permissions.
-`slips` also contains bankbook photos and receipts. Current callers use public URLs;
-review bucket access and migrate all viewers to signed URLs with ownership/admin
-policies before storing real sensitive files. Do not simply make the bucket private
-without updating these viewers.
-
-## Outstanding production work
-
-- Payment QR is intentionally a demonstration, as requested. It encodes booking
-  text and is not a real PromptPay payment payload. Replace it before accepting money.
-- Move booking creation, trusted price calculation and seat reservation into one
-  database transaction/RPC. Current browser writes can race and do not establish
-  authoritative pricing. Inspect schema and policies before designing the migration.
-- Verify policies with two separate customer accounts and an admin; verify one
-  customer cannot read/update another booking, travelers, slips or refund request.
-- Test simultaneous booking of the last seat, failed traveler writes, cancellation,
-  rescheduling, payment review and refunds.
-- Production build success does not certify these external services or business flows.
+See [remediation report](docs/REMEDIATION.md), [schema review](docs/SCHEMA_REVIEW.md)
+and [acceptance tests](docs/SECURITY_TESTS.md). Build/unit success does not verify
+external Auth, Storage or booking concurrency; those require staged integration tests.

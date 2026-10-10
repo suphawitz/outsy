@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../client';
+import { createBooking, bookingAction, authenticatedUser } from '../services/booking';
+import { uploadBookingDocument } from '../services/documents';
+import { thaiError } from '../lib/errors';
 
 export default function Booking() {
   const { id } = useParams();
@@ -20,6 +23,8 @@ export default function Booking() {
   const [currentStep, setCurrentStep] = useState(2);
   const [submitting, setSubmitting] = useState(false);
   const [bookingRefId, setBookingRefId] = useState('');
+  const [confirmedTotal, setConfirmedTotal] = useState(null);
+  const bookingRequestIdRef = useRef(null);
   const [slipFile, setSlipFile] = useState(null);
   const [formError, setFormError] = useState('');
 
@@ -36,7 +41,8 @@ export default function Booking() {
     async function loadData() {
       setLoading(true);
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const user = await authenticatedUser();
+        const session = { user };
         if (!session) {
           alert('กรุณาเข้าสู่ระบบก่อนทำการจองทัวร์');
           navigate('/login', { state: { returnUrl: location.pathname + location.search } });
@@ -57,18 +63,22 @@ export default function Booking() {
         const { data: pkgData } = await supabase.from('Tour_Packages').select('*').eq('package_id', packageId).maybeSingle();
         if (pkgData) setTourPackage(pkgData);
 
-        const { data: schData } = await supabase.from('Tour_Schedules').select('*').eq('package_id', packageId).order('travel_date', { ascending: true });
+        const { data: schData } = await supabase.from('Tour_Schedules').select('*').eq('status', 'open').eq('package_id', packageId).order('travel_date', { ascending: true });
         if (schData && schData.length > 0) {
           setSchedules(schData);
           if (!initialDate) setSelectedDate(schData[0].travel_date);
         }
       } catch (err) {
-        console.error('Error fetching booking data:', err);
+        setFormError(thaiError(err, 'โหลดข้อมูลการจองไม่สำเร็จ'));
       } finally {
         setLoading(false);
       }
     }
     loadData();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {
+      if (event === 'SIGNED_OUT') { setSlipFile(null); navigate('/login', { replace: true }); }
+    });
+    return () => subscription.unsubscribe();
   }, [packageId, initialDate, navigate, location.pathname, location.search]);
 
   const totalPassengers = 1 + additionalTravelers.length;
@@ -95,10 +105,11 @@ export default function Booking() {
   };
 
   const pricePerPerson = Number(tourPackage?.price || 0);
-  const netTotal = pricePerPerson * totalPassengers;
+  const netTotal = confirmedTotal ?? pricePerPerson * totalPassengers;
 
   const handleProceedToPayment = async (e) => {
     e.preventDefault();
+    if (submitting) return;
     setFormError('');
 
     const missing = {
@@ -134,15 +145,18 @@ export default function Booking() {
       return;
     }
 
-    const phoneRegex = /^[0-9]+$/;
+    const phoneRegex = /^[0-9]{6,20}$/;
     if (!phoneRegex.test(customer.phone.trim())) {
-      setFormError('กรุณากรอกหมายเลขโทรศัพท์เป็นตัวเลขเท่านั้น');
+      setFormError('กรุณากรอกเบอร์โทรศัพท์เป็นตัวเลข 6–20 หลัก');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       phoneRef.current?.focus();
       return;
     }
 
     for (let i = 0; i < additionalTravelers.length; i++) {
+      if (!additionalTravelers[i].firstName.trim() || !additionalTravelers[i].lastName.trim()) {
+        setFormError(`กรุณากรอกชื่อและนามสกุลผู้เดินทางคนที่ ${i + 2}`); return;
+      }
       const tPhone = additionalTravelers[i].phone;
       if (tPhone && tPhone.trim() && !phoneRegex.test(tPhone.trim())) {
         setFormError(`กรุณากรอกเบอร์โทรศัพท์ของผู้เดินทางคนที่ ${i + 2} เป็นตัวเลขเท่านั้น`);
@@ -153,86 +167,31 @@ export default function Booking() {
 
     setSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setFormError('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
-        navigate('/login');
-        return;
-      }
-
-      const matchedSchedule = schedules.find((schedule) => schedule.travel_date === selectedDate);
-      const scheduleId = matchedSchedule?.tour_date_id || matchedSchedule?.schedule_id;
-
-      if (matchedSchedule) {
-        const booked = Number(matchedSchedule.booked_count || 0);
-        const max = Number(matchedSchedule.max_capacity || 10);
-        const remaining = max - booked;
-
-        if (totalPassengers > remaining) {
-          setFormError(`ขออภัย รอบวันที่ ${selectedDate} เหลือที่ว่างเพียง ${Math.max(0, remaining)} ที่นั่ง ไม่เพียงพอสำหรับ ${totalPassengers} ท่าน`);
-          setSubmitting(false);
-          return;
-        }
-      }
-
-      const insertRecord = {
-        package_id: String(tourPackage?.package_id || packageId),
+      const user = await authenticatedUser();
+      const matchedSchedule = schedules.find(schedule => schedule.travel_date === selectedDate);
+      if (!matchedSchedule) throw new Error('OUTSY_SCHEDULE');
+      const draftKey = `outsy_booking_draft:${user.id}:${packageId}:${selectedDate}`;
+      bookingRequestIdRef.current ||= sessionStorage.getItem(draftKey) || crypto.randomUUID();
+      sessionStorage.setItem(draftKey, bookingRequestIdRef.current);
+      const bookingData = await createBooking({
+        request_id: bookingRequestIdRef.current,
+        schedule_id: String(matchedSchedule.schedule_id),
         customer_name: `${customer.firstName.trim()} ${customer.lastName.trim()}`,
-        customer_email: customer.email.trim(),
         customer_phone: customer.phone.trim(),
-        travel_date: selectedDate || new Date().toISOString().split('T')[0],
-        number_people: Number(totalPassengers),
-        total_price: Number(netTotal),
-        booking_status: 'รอชำระเงิน',
         special_diet: customer.specialDiet || 'none',
         special_notes: customer.specialNotes || '',
-        user_id: user.id,
-      };
-
-      if (scheduleId !== undefined && scheduleId !== null && !isNaN(scheduleId)) {
-        insertRecord.tour_date_id = Number(scheduleId);
-      }
-
-      const { data: bookingData, error: bookingError } = await supabase.from('bookings').insert([insertRecord]).select().single();
-      if (bookingError) { setFormError(`บันทึกการจองไม่สำเร็จ: ${bookingError.message}`); return; }
-      if (!bookingData) throw new Error('ไม่สามารถสร้างรายการจองได้');
-
-      const generatedBookingId = bookingData.booking_id;
-      const validTravelers = additionalTravelers.filter((t) => t.firstName.trim() || t.lastName.trim() || t.phone.trim());
-
-      if (validTravelers.length > 0) {
-        const travelerRecords = validTravelers.map((traveler) => ({
-          booking_id: generatedBookingId,
-          full_name: `${traveler.firstName.trim()} ${traveler.lastName.trim()}`.trim() || 'ผู้เดินทาง',
+        travelers: additionalTravelers.map(traveler => ({
+          full_name: `${traveler.firstName.trim()} ${traveler.lastName.trim()}`.trim(),
           phone: traveler.phone.trim() || null,
-        }));
-
-        const { error: travelerInsertError } = await supabase.from('booking_travelers').insert(travelerRecords);
-        if (travelerInsertError) {
-          await supabase.from('bookings').delete().eq('booking_id', generatedBookingId);
-          throw new Error(`บันทึกข้อมูลผู้เดินทางไม่สำเร็จ: ${travelerInsertError.message}`);
-        }
-      }
-
-      if (selectedDate && (tourPackage?.package_id || packageId)) {
-        const currentPkgId = tourPackage?.package_id || packageId;
-        const { data: schCurrent } = await supabase.from('Tour_Schedules').select('schedule_id, booked_count').eq('package_id', currentPkgId).eq('travel_date', selectedDate).maybeSingle();
-
-        if (schCurrent) {
-          const currentBooked = Number(schCurrent.booked_count || 0);
-          const newBooked = currentBooked + Number(totalPassengers);
-          await supabase.from('Tour_Schedules').update({ booked_count: newBooked }).eq('schedule_id', schCurrent.schedule_id);
-        }
-      }
-
-      const generatedId = String(generatedBookingId);
-      setBookingRefId(generatedId);
-      localStorage.setItem('outsy_last_booking_email', customer.email.trim());
-      localStorage.setItem('outsy_last_booking_id', generatedId);
+        })),
+      });
+      if (!bookingData.booking_id || !Number.isFinite(Number(bookingData.total_price))) throw new Error('Invalid booking response');
+      setBookingRefId(String(bookingData.booking_id));
+      setConfirmedTotal(Number(bookingData.total_price));
+      sessionStorage.removeItem(draftKey);
       setCurrentStep(3);
     } catch (err) {
-      console.error('Booking insertion error:', err);
-      setFormError(`เกิดข้อผิดพลาด: ${err.message || 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้'}`);
+      setFormError(thaiError(err, 'สร้างการจองไม่สำเร็จ กรุณาโหลดรอบเดินทางใหม่และลองอีกครั้ง'));
     } finally {
       setSubmitting(false);
     }
@@ -247,26 +206,14 @@ export default function Booking() {
       return;
     }
 
+    if (submitting) return;
     setSubmitting(true);
     try {
-      let slipFileName = null;
-      if (slipFile) {
-        const fileExt = slipFile.name.split('.').pop();
-        slipFileName = `slip_${bookingRefId}_${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('slips').upload(slipFileName, slipFile, { upsert: true });
-        if (uploadError) throw new Error(`อัปโหลดสลิปไม่สำเร็จ: ${uploadError.message}`);
-      }
-
-      const updateData = { booking_status: 'รอตรวจสอบยอด' };
-      if (slipFileName) updateData.slip = slipFileName;
-
-      const { error: updateBookingError } = await supabase.from('bookings').update(updateData).eq('booking_id', Number(bookingRefId));
-      if (updateBookingError) throw new Error(`อัปเดตสถานะการจองไม่สำเร็จ: ${updateBookingError.message}`);
-
+      const path = await uploadBookingDocument(bookingRefId, 'slip', slipFile);
+      await bookingAction(bookingRefId, 'submit_slip', { path });
       setCurrentStep(4);
     } catch (err) {
-      console.error('Payment upload error:', err);
-      setFormError(err.message || 'ไม่สามารถบันทึกการชำระเงินได้');
+      setFormError(thaiError(err, 'บันทึกเอกสารไม่สำเร็จ กรุณาตรวจสอบประวัติก่อนลองใหม่'));
     } finally {
       setSubmitting(false);
     }
@@ -352,7 +299,7 @@ export default function Booking() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: '16px', marginBottom: '6px' }}>
                     <div>
                       <label style={labelStyle}>อีเมล *</label>
-                      <input ref={emailRef} type="email" placeholder="yourname@email.com" value={customer.email} onChange={(e) => { setCustomer({ ...customer, email: e.target.value }); if (formError) setFormError(''); if (missingFields.email) setMissingFields({ ...missingFields, email: false }); }} style={{ ...inputStyle, borderColor: missingFields.email ? theme.red : '#e2e8f0' }} />
+                      <input ref={emailRef} readOnly type="email" placeholder="yourname@email.com" value={customer.email} onChange={(e) => { setCustomer({ ...customer, email: e.target.value }); if (formError) setFormError(''); if (missingFields.email) setMissingFields({ ...missingFields, email: false }); }} style={{ ...inputStyle, borderColor: missingFields.email ? theme.red : '#e2e8f0' }} />
                     </div>
                     <div>
                       <label style={labelStyle}>หมายเลขโทรศัพท์ * (เฉพาะตัวเลข)</label>
@@ -371,7 +318,7 @@ export default function Booking() {
                     <div style={{ fontSize: '14px', fontWeight: 'bold', color: theme.brown, marginBottom: '5px' }}>รายชื่อผู้เดินทางเพิ่มเติม (ไม่บังคับ)</div>
                     <div style={{ fontSize: '11px', color: theme.textMuted, marginBottom: '12px' }}>กรอกชื่อ-นามสกุล และเบอร์โทรศัพท์ (เฉพาะตัวเลข ถ้ามี)</div>
 
-                    {additionalTravelers.map((traveler, index) => (
+                    {additionalTravelers.map((traveler) => (
                       <div key={traveler.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.1fr 40px', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
                         <input type="text" placeholder="ชื่อ" value={traveler.firstName} onChange={(e) => handleTravelerChange(traveler.id, 'firstName', e.target.value)} style={inputStyle} />
                         <input type="text" placeholder="นามสกุล" value={traveler.lastName} onChange={(e) => handleTravelerChange(traveler.id, 'lastName', e.target.value)} style={inputStyle} />
@@ -491,12 +438,13 @@ export default function Booking() {
         {/* STEP 3 - PAYMENT */}
         {currentStep === 3 && (
           <div style={{ maxWidth: '500px', margin: '20px auto', backgroundColor: theme.card, borderRadius: '24px', padding: '32px', border: `1px solid ${theme.border}`, textAlign: 'center', boxShadow: '0 6px 24px rgba(0,0,0,0.06)' }}>
-            <div style={{ backgroundColor: theme.cyan, color: '#024245', padding: '6px 14px', borderRadius: '8px', display: 'inline-block', fontWeight: 'bold', fontSize: '13px', marginBottom: '14px' }}>PROMPTPAY QR CODE</div>
-            <h2 style={{ margin: '0 0 6px', color: theme.brown }}>สแกนเพื่อชำระเงิน</h2>
+            <div style={{ backgroundColor: theme.cyan, color: '#024245', padding: '6px 14px', borderRadius: '8px', display: 'inline-block', fontWeight: 'bold', fontSize: '13px', marginBottom: '14px' }}>QR จำลองสำหรับสาธิต</div>
+            <h2 style={{ margin: '0 0 6px', color: theme.brown }}>สาธิตขั้นตอนชำระเงิน</h2>
+            <p>QR นี้ไม่ใช้รับเงินจริง กรุณาแนบเฉพาะเอกสารจำลอง</p>
             <p style={{ margin: '0 0 16px', fontSize: '13px', color: theme.textMuted }}>รหัสการจอง: <b>#{bookingRefId}</b></p>
 
             <div style={{ border: `3px solid ${theme.yellow}`, borderRadius: '18px', padding: '16px', display: 'inline-block', backgroundColor: '#fff', marginBottom: '16px' }}>
-              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=OUTSY_BOOKING_${bookingRefId}_AMOUNT_${netTotal}`} alt="PromptPay QR Code" style={{ width: '220px', height: '220px', display: 'block' }} />
+              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=OUTSY_BOOKING_${bookingRefId}_AMOUNT_${netTotal}`} alt="QR จำลอง ไม่สามารถชำระเงินจริง" style={{ width: '220px', height: '220px', display: 'block' }} />
             </div>
 
             <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '12px', marginBottom: '18px' }}>
@@ -510,11 +458,11 @@ export default function Booking() {
 
             <div style={{ textAlign: 'left', marginBottom: '18px' }}>
               <label style={{ fontSize: '12px', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>แนบสลิปการโอนเงิน (Slip):</label>
-              <input type="file" accept="image/*" onChange={(e) => { setSlipFile(e.target.files?.[0] || null); if (formError) setFormError(''); }} style={{ ...inputStyle, padding: '8px' }} />
+              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { setSlipFile(e.target.files?.[0] || null); if (formError) setFormError(''); }} style={{ ...inputStyle, padding: '8px' }} />
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" onClick={() => setCurrentStep(2)} disabled={submitting} style={{ flex: 1, backgroundColor: '#f1f5f9', color: theme.brown, border: 'none', padding: '14px', borderRadius: '14px', fontWeight: 'bold', cursor: 'pointer' }}>ย้อนกลับ</button>
+              <button type="button" onClick={handleGoToHistory} disabled={submitting} style={{ flex: 1, backgroundColor: '#f1f5f9', color: theme.brown, border: 'none', padding: '14px', borderRadius: '14px', fontWeight: 'bold', cursor: 'pointer' }}>ดูการจองที่บันทึกไว้</button>
               <button type="button" onClick={handleFinishPayment} disabled={submitting} style={{ flex: 2, backgroundColor: theme.cyan, color: '#013a3d', border: 'none', padding: '14px', borderRadius: '14px', fontWeight: 'bold', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 }}>{submitting ? 'กำลังบันทึก...' : 'แจ้งชำระเงินเสร็จสิ้น ✓'}</button>
             </div>
           </div>
@@ -560,5 +508,5 @@ function SuccessRow({ label, value }) {
 
 const labelStyle = { fontSize: '12px', display: 'block', marginBottom: '6px', fontWeight: 'bold', color: '#475569' };
 const inputStyle = { width: '100%', padding: '11px 14px', borderRadius: '12px', border: '1.5px solid #e2e8f0', fontSize: '13px', outline: 'none', boxSizing: 'border-box', backgroundColor: '#ffffff' };
-const miniInputStyle = { width: '100%', padding: '8px 12px', borderRadius: '10px', border: '1.5px solid #e2e8f0', fontSize: '12px', outline: 'none', boxSizing: 'border-box', backgroundColor: '#ffffff' };
+
 const radioLabelStyle = { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' };

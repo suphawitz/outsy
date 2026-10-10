@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../client';
+import { supabase, recoveryLinkError } from '../client';
+import { thaiError } from '../lib/errors';
 
 export default function UpdatePassword() {
   const [ready, setReady] = useState(false);
@@ -12,20 +13,23 @@ export default function UpdatePassword() {
 
   useEffect(() => {
     let active = true;
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (active && session && (event === 'PASSWORD_RECOVERY' || event === 'INITIAL_SESSION')) {
-        setReady(true);
-        setMessage('');
-      }
+    if (recoveryLinkError) {
+      setMessage('ลิงก์ไม่ถูกต้องหรือหมดอายุ กรุณาขอลิงก์ใหม่จากหน้าเข้าสู่ระบบ');
+      return () => { active = false; };
+    }
+    async function verify() {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (!active) return;
+        setReady(Boolean(data.user) && !error);
+        setMessage(error || !data.user ? 'ลิงก์ไม่ถูกต้องหรือหมดอายุ กรุณาขอลิงก์ใหม่จากหน้าเข้าสู่ระบบ' : '');
+      } catch { if (active) setMessage('ตรวจสอบลิงก์ไม่สำเร็จ กรุณาลองใหม่'); }
+    }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') { setReady(false); setMessage('เซสชันหมดอายุ กรุณาขอลิงก์ใหม่'); }
+      if (event === 'PASSWORD_RECOVERY') setTimeout(() => { if (active) void verify(); }, 0);
     });
-    // getSession waits for URL session initialization, including recovery links.
-    supabase.auth.getSession().then(({ data, error }) => {
-      if (!active) return;
-      setReady(Boolean(data.session) && !error);
-      setMessage(error || !data.session ? 'ลิงก์ไม่ถูกต้องหรือหมดอายุ กรุณาขอลิงก์ใหม่จากหน้าเข้าสู่ระบบ' : '');
-    }).catch(() => {
-      if (active) setMessage('ตรวจสอบลิงก์ไม่สำเร็จ กรุณาลองใหม่');
-    });
+    void verify();
     return () => { active = false; subscription.unsubscribe(); };
   }, []);
 
@@ -44,13 +48,13 @@ export default function UpdatePassword() {
       setConfirmation('');
       setMessage('เปลี่ยนรหัสผ่านเรียบร้อยแล้ว');
     } catch (error) {
-      setMessage(error.message || 'เปลี่ยนรหัสผ่านไม่สำเร็จ');
+      setMessage(thaiError(error, 'เปลี่ยนรหัสผ่านไม่สำเร็จ กรุณาขอลิงก์ใหม่'));
     } finally { setBusy(false); }
   }
 
   const fieldStyle = { display: 'block', width: '100%', padding: 12, margin: '8px 0 20px', boxSizing: 'border-box' };
   return (
-    <main style={{ maxWidth: 440, margin: '60px auto', padding: 24, background: '#fffdf9', borderRadius: 20 }}>
+    <main style={{ maxWidth: 440, margin: '120px auto 60px', padding: 24, background: '#fffdf9', borderRadius: 20 }}>
       <h1>ตั้งรหัสผ่านใหม่</h1>
       {message && <p role="status">{message}</p>}
       {ready && !done && <form onSubmit={submit}>

@@ -1,9 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../client';
+import { bookingAction, authenticatedUser } from '../services/booking';
+import { uploadBookingDocument } from '../services/documents';
+import PrivateDocumentImage from '../components/PrivateDocumentImage';
+import { thaiError } from '../lib/errors';
 
 export default function BookingHistory() {
   const navigate = useNavigate();
+  const loadGeneration = useRef(0);
+  const identityRef = useRef(null);
 
   const theme = {
     red: '#e7191f',
@@ -62,81 +68,22 @@ export default function BookingHistory() {
     setModalAlert({ show: false, title: '', message: '', icon: '✨' });
   };
 
-  const normalizeTravelers = (rawTravelers, booking) => {
-    if (!rawTravelers) return [];
-    let data = rawTravelers;
-
-    if (typeof data === 'string') {
-      try { data = JSON.parse(data); } catch { return []; }
+  const loadTravelersForBookings = useCallback(async (bookingList) => {
+    if (!bookingList.length) return {};
+    const { data, error } = await supabase.from('booking_travelers')
+      .select('traveler_id,booking_id,full_name,phone,created_at')
+      .in('booking_id', bookingList.map(booking => booking.booking_id));
+    if (error) throw error;
+    const map = {};
+    for (const traveler of data || []) {
+      (map[traveler.booking_id] ||= []).push({ name: traveler.full_name, phone: traveler.phone || '' });
     }
+    return map;
+  }, []);
 
-    if (!Array.isArray(data) && typeof data === 'object') {
-      data = data.travelers || data.travellers || data.passengers || data.data || [];
-    }
-
-    if (!Array.isArray(data)) return [];
-
-    return data.map((traveler, index) => {
-      if (typeof traveler === 'string') {
-        return { index: index + 1, name: traveler, phone: '', email: '' };
-      }
-      if (!traveler || typeof traveler !== 'object') return null;
-
-      const name = traveler.full_name || traveler.fullName || traveler.name || traveler.customer_name || traveler.traveler_name || traveler.traveller_name || traveler.passenger_name || `ผู้เดินทางคนที่ ${index + 1}`;
-      const email = traveler.email || traveler.customer_email || '';
-      const phone = traveler.phone || traveler.tel || traveler.mobile || traveler.customer_phone || '';
-      const idCard = traveler.id_card || traveler.idCard || traveler.citizen_id || traveler.national_id || '';
-
-      return { ...traveler, index: index + 1, name, email, phone, idCard };
-    }).filter(Boolean);
-  };
-
-  const getTravelersFromBooking = (booking) => {
-    const possibleFields = ['travelers', 'travellers', 'traveler_details', 'traveller_details', 'traveler_data', 'traveller_data', 'passengers', 'passenger_details', 'booking_travelers'];
-
-    for (const field of possibleFields) {
-      if (booking?.[field]) {
-        const result = normalizeTravelers(booking[field], booking);
-        if (result.length > 0) return result;
-      }
-    }
-
-    if (booking?.customer_name || booking?.customer_email || booking?.customer_phone) {
-      return [{ index: 1, name: booking.customer_name || 'ผู้จองหลัก', email: booking.customer_email || '', phone: booking.customer_phone || '' }];
-    }
-    return [];
-  };
-
-  const loadTravelersForBookings = async (bookingList) => {
-    if (!bookingList || bookingList.length === 0) return {};
-    const bookingIds = bookingList.map((b) => b.booking_id).filter(Boolean);
-    if (bookingIds.length === 0) return {};
-
-    const travelerMap = {};
-    const possibleTables = ['booking_travelers', 'travelers', 'booking_passengers'];
-
-    for (const tableName of possibleTables) {
-      try {
-        const { data, error } = await supabase.from(tableName).select('*').in('booking_id', bookingIds);
-        if (error || !data || data.length === 0) continue;
-
-        data.forEach((traveler) => {
-          const bookingId = traveler.booking_id;
-          if (!bookingId) return;
-          if (!travelerMap[bookingId]) travelerMap[bookingId] = [];
-
-          const normalized = normalizeTravelers([traveler]);
-          if (normalized.length > 0) travelerMap[bookingId].push(normalized[0]);
-        });
-      } catch (err) {
-        console.log(`Skip traveler table: ${tableName}`);
-      }
-    }
-    return travelerMap;
-  };
-
-  async function loadBookings(user) {
-    if (!user) {
+  const loadBookings = useCallback(async (user) => {
+    const request = ++loadGeneration.current;
+    if (!user || identityRef.current !== user.id) {
       setBookings([]);
       setLoading(false);
       return;
@@ -146,18 +93,7 @@ export default function BookingHistory() {
       setLoading(true);
       setErrorMessage('');
 
-      const email = (user.email || '').trim();
-      const userId = user.id;
-
-      let query = supabase.from('bookings').select('*');
-
-      if (userId && email) {
-        query = query.or(`user_id.eq.${userId},customer_email.ilike.${email}`);
-      } else if (userId) {
-        query = query.eq('user_id', userId);
-      } else {
-        query = query.ilike('customer_email', email);
-      }
+      const query = supabase.from('bookings').select('*').eq('user_id', user.id);
 
       const { data: bList, error: bErr } = await query.order('created_at', { ascending: false });
       if (bErr) throw bErr;
@@ -183,14 +119,11 @@ export default function BookingHistory() {
       const travelerMap = await loadTravelersForBookings(userBookings);
 
       const formattedBookings = userBookings.map((booking) => {
-        let additional = travelerMap[booking.booking_id] || [];
-        if (additional.length === 0) {
-          additional = getTravelersFromBooking(booking);
-        }
+        const additional = travelerMap[booking.booking_id] || [];
 
         const allTravelers = [
           { name: booking.customer_name || 'ผู้จองหลัก', email: booking.customer_email || '', phone: booking.customer_phone || '' },
-          ...additional.filter((t) => t.name !== booking.customer_name),
+          ...additional,
         ];
 
         return {
@@ -204,28 +137,31 @@ export default function BookingHistory() {
         };
       });
 
-      setBookings(formattedBookings);
+      if (request === loadGeneration.current) setBookings(formattedBookings);
     } catch (err) {
-      console.error('Error loading booking history:', err);
-      setErrorMessage(err?.message || 'ไม่สามารถโหลดประวัติการจองได้');
-      setBookings([]);
+      if (request === loadGeneration.current) { setErrorMessage(thaiError(err, 'ไม่สามารถโหลดประวัติการจองได้')); setBookings([]); }
     } finally {
-      setLoading(false);
+      if (request === loadGeneration.current) setLoading(false);
     }
-  }
+  }, [loadTravelersForBookings]);
 
   useEffect(() => {
     let channel = null;
+    let active = true;
+    const setupGeneration = loadGeneration.current;
 
     async function setupAuthAndData() {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user || null;
+      let user;
+      try { user = await authenticatedUser(); } catch { if (active) setLoading(false); return; }
+      if (!active || setupGeneration !== loadGeneration.current) return;
+      identityRef.current = user.id;
       setCurrentUser(user);
 
       if (user) {
         await loadBookings(user);
+        if (!active || identityRef.current !== user.id) return;
         channel = supabase.channel(`public:bookings:${user.id}`)
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => { loadBookings(user); })
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings', filter: `user_id=eq.${user.id}` }, () => { if (identityRef.current === user.id) void loadBookings(user); })
           .subscribe();
       } else {
         setLoading(false);
@@ -234,38 +170,74 @@ export default function BookingHistory() {
 
     setupAuthAndData();
 
+    const generation = loadGeneration;
     return () => {
+      active = false; generation.current++; identityRef.current = null;
       if (channel) supabase.removeChannel(channel);
     };
+  }, [loadBookings]);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {
+      if (event === 'SIGNED_OUT') { identityRef.current = null; loadGeneration.current++; setLoading(false); setCurrentUser(null); setBookings([]); setPreviewSlipUrl(null); setRefundModal({ show: false, booking: null }); setRescheduleModal({ show: false, booking: null, newDate: '' }); }
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleUploadNewSlip = async (bookingId, file) => {
-    if (!file) return;
+    if (!file || uploadingBookingId !== null) return;
     setUploadingBookingId(bookingId);
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `slip_${bookingId}_${Date.now()}.${fileExt}`;
-      const filePath = `slips/${fileName}`;
-
-      const { error: uploadErr } = await supabase.storage.from('slips').upload(filePath, file, { upsert: true });
-      if (uploadErr) throw uploadErr;
-
-      const { data: pubUrlData } = supabase.storage.from('slips').getPublicUrl(filePath);
-      const slipUrl = pubUrlData?.publicUrl || filePath;
-
-      const { error: updateErr } = await supabase.from('bookings').update({ slip: slipUrl, booking_status: 'รอตรวจสอบยอด' }).eq('booking_id', bookingId);
-      if (updateErr) throw updateErr;
+      const path = await uploadBookingDocument(bookingId, 'slip', file);
+      await bookingAction(bookingId, 'submit_slip', { path });
 
       showAlertModal('แนบสลิปสำเร็จ! 🎉', 'ระบบส่งหลักฐานให้แอดมินตรวจสอบเรียบร้อยแล้วค่ะ', '📤');
       if (currentUser) loadBookings(currentUser);
     } catch (err) {
-      console.error('Upload slip error:', err);
-      showAlertModal('แนบสลิปไม่สำเร็จ ❌', err.message, '⚠️');
+      showAlertModal('แนบสลิปไม่สำเร็จ ❌', thaiError(err), '⚠️');
     } finally {
       setUploadingBookingId(null);
     }
   };
+
+  const [actionBusy, setActionBusy] = useState(false);
+  async function handleRequestReschedule() {
+    if (actionBusy || !rescheduleModal.newDate) return;
+    setActionBusy(true);
+    try {
+      await bookingAction(rescheduleModal.booking.booking_id, 'request_reschedule', { travel_date: rescheduleModal.newDate });
+      showAlertModal('ส่งคำขอสำเร็จ', 'รอผู้ดูแลอนุมัติ ที่นั่งและวันเดินทางเดิมยังไม่เปลี่ยน', '✅');
+      setRescheduleModal({ show: false, booking: null, newDate: '' });
+      await loadBookings(currentUser);
+    } catch (err) { showAlertModal('ส่งคำขอไม่สำเร็จ', thaiError(err), '⚠️'); }
+    finally { setActionBusy(false); }
+  }
+  async function handleRequestRefund() {
+    if (refundModal.submitting) return;
+    if (!refundModal.accountName || !refundModal.bankName || !/^[0-9]{6,30}$/.test(refundModal.accountNo) || !/^[0-9]{6,20}$/.test(refundModal.phone) || !refundModal.bookBankFile) {
+      showAlertModal('แจ้งเตือน', 'กรุณากรอกชื่อ บัญชี เบอร์โทร และแนบรูปสมุดบัญชีให้ครบถ้วน', '⚠️'); return;
+    }
+    setRefundModal(prev => ({ ...prev, submitting: true }));
+    try {
+      const path = await uploadBookingDocument(refundModal.booking.booking_id, 'bookbank', refundModal.bookBankFile);
+      await bookingAction(refundModal.booking.booking_id, 'request_refund', {
+        bank_name: refundModal.bankName, account_no: refundModal.accountNo,
+        account_name: refundModal.accountName, phone: refundModal.phone, path,
+      });
+      showAlertModal('ส่งเรื่องสำเร็จ', 'ผู้ดูแลได้รับคำขอคืนเงินแล้ว', '✅');
+      setRefundModal({ show: false, booking: null });
+      await loadBookings(currentUser);
+    } catch (err) { showAlertModal('ส่งคำขอไม่สำเร็จ', thaiError(err), '⚠️'); }
+    finally { setRefundModal(prev => ({ ...prev, submitting: false })); }
+  }
+  async function cancelBooking(bookingId) {
+    if (actionBusy || !window.confirm('ยืนยันยกเลิกการจองนี้?')) return;
+    setActionBusy(true);
+    try { await bookingAction(bookingId, 'cancel'); await loadBookings(currentUser); }
+    catch (err) { showAlertModal('ยกเลิกไม่สำเร็จ', thaiError(err), '⚠️'); }
+    finally { setActionBusy(false); }
+  }
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -432,7 +404,7 @@ export default function BookingHistory() {
                         )}
                       </div>
 
-                      {isCancelled && (
+                      {isCancelled && booking.payment_approved && (
                         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '12px' }}>
                           <button type="button" onClick={() => setRescheduleModal({ show: true, booking, newDate: '' })} style={{ backgroundColor: theme.cyan, color: '#013a3d', border: 'none', padding: '9px 18px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>🔄 เปลี่ยนวันเดินทาง</button>
                           <button type="button" onClick={() => setRefundModal({ show: true, booking, bankName: 'กสิกรไทย', accountNo: '', accountName: '', email: currentUser?.email || '', phone: '', bookBankFile: null, submitting: false })} style={{ backgroundColor: theme.red, color: '#ffffff', border: 'none', padding: '9px 18px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>💸 ขอคืนเงิน</button>
@@ -449,15 +421,16 @@ export default function BookingHistory() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px dashed ${theme.border}`, paddingTop: '12px', flexWrap: 'wrap', gap: '10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         {booking.slip ? (
-                          <button type="button" onClick={() => { const url = booking.slip.startsWith('http') ? booking.slip : supabase.storage.from('slips').getPublicUrl(booking.slip).data?.publicUrl; setPreviewSlipUrl(url); }} style={{ backgroundColor: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '6px 14px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>📎 ดูสลิปที่แนบไว้</button>
+                          <button type="button" onClick={() => setPreviewSlipUrl(booking.slip)} style={{ backgroundColor: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '6px 14px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>📎 ดูสลิปที่แนบไว้</button>
                         ) : (
                           <span style={{ fontSize: '12px', color: theme.textMuted }}>ยังไม่ได้แนบสลิปการโอนเงิน</span>
                         )}
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <input type="file" id={`slip-upload-${booking.booking_id}`} accept="image/*" style={{ display: 'none' }} onChange={(e) => { if (e.target.files && e.target.files[0]) { handleUploadNewSlip(booking.booking_id, e.target.files[0]); } }} />
-                        <label htmlFor={`slip-upload-${booking.booking_id}`} style={{ backgroundColor: theme.yellow, color: theme.brown, padding: '7px 16px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 2px 6px rgba(253,213,1,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>{uploadingBookingId === booking.booking_id ? '⏳ กำลังอัปโหลด...' : '📤 แนบสลิปใหม่'}</label>
+                        {['รอชำระเงิน', 'รอตรวจสอบยอด'].includes(booking.booking_status) && <><input type="file" id={`slip-upload-${booking.booking_id}`} accept="image/jpeg,image/png,image/webp" disabled={uploadingBookingId !== null} style={{ display: 'none' }} onChange={(e) => { if (e.target.files && e.target.files[0]) { handleUploadNewSlip(booking.booking_id, e.target.files[0]); } }} />
+                        <label htmlFor={`slip-upload-${booking.booking_id}`} style={{ backgroundColor: theme.yellow, color: theme.brown, padding: '7px 16px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 2px 6px rgba(253,213,1,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>{uploadingBookingId === booking.booking_id ? '⏳ กำลังอัปโหลด...' : '📤 แนบสลิปใหม่'}</label></>}
+                        {['รอชำระเงิน', 'รอตรวจสอบยอด', 'ชำระเงินแล้ว'].includes(booking.booking_status) && <button type="button" disabled={actionBusy} onClick={() => cancelBooking(booking.booking_id)}>ยกเลิกการจอง</button>}
                         <button type="button" onClick={() => navigate(`/booking-detail/${booking.booking_id}`)} style={{ backgroundColor: '#f1f5f9', border: `1.5px solid ${theme.border}`, color: theme.brown, padding: '7px 14px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>ดูรายละเอียด →</button>
                       </div>
                     </div>
@@ -481,7 +454,7 @@ export default function BookingHistory() {
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button type="button" onClick={() => setRescheduleModal({ show: false, booking: null, newDate: '' })} style={{ flex: 1, backgroundColor: '#f1f5f9', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}>ยกเลิก</button>
-              <button type="button" onClick={async () => { if (!rescheduleModal.newDate) { showAlertModal('แจ้งเตือน', 'กรุณาเลือกวันที่ต้องการเปลี่ยน', '⚠️'); return; } try { const oldDate = rescheduleModal.booking.travel_date; const { error } = await supabase.from('bookings').update({ booking_status: 'ขอเปลี่ยนวันเดินทาง', old_travel_date: oldDate, travel_date: rescheduleModal.newDate }).eq('booking_id', rescheduleModal.booking.booking_id); if (error) throw error; showAlertModal('ส่งคำขอเปลี่ยนวันสำเร็จ! 🎉', `ระบบได้ส่งคำขอเปลี่ยนเป็นวันที่ ${rescheduleModal.newDate} ให้แอดมินตรวจสอบแล้ว`, '✅'); setRescheduleModal({ show: false, booking: null, newDate: '' }); loadBookings(currentUser); } catch (err) { showAlertModal('เกิดข้อผิดพลาด', err.message, '⚠️'); } }} style={{ flex: 1, backgroundColor: theme.cyan, color: '#013a3d', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer' }}>ยืนยันเปลี่ยนวัน</button>
+              <button type="button" disabled={actionBusy} onClick={handleRequestReschedule} style={{ flex: 1, backgroundColor: theme.cyan, color: '#013a3d', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer' }}>ยืนยันเปลี่ยนวัน</button>
             </div>
           </div>
         </div>
@@ -529,7 +502,7 @@ export default function BookingHistory() {
             </div>
             <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
               <button type="button" onClick={() => setRefundModal({ show: false, booking: null })} style={{ flex: 1, backgroundColor: '#f1f5f9', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}>ยกเลิก</button>
-              <button type="button" disabled={refundModal.submitting} onClick={async () => { if (!refundModal.accountNo || !refundModal.accountName || !refundModal.phone) { showAlertModal('แจ้งเตือน', 'กรุณากรอกข้อมูลบัญชีให้ครบถ้วน', '⚠️'); return; } if (!refundModal.bookBankFile) { showAlertModal('แจ้งเตือน', 'กรุณาแนบไฟล์หน้าสมุดบัญชี (Book Bank) ก่อนยืนยัน', '⚠️'); return; } const phoneRegex = /^[0-9]+$/; if (!phoneRegex.test(refundModal.phone)) { showAlertModal('แจ้งเตือน', 'กรุณากรอกเบอร์โทรศัพท์เป็นตัวเลขเท่านั้น', '⚠️'); return; } if (!phoneRegex.test(refundModal.accountNo)) { showAlertModal('แจ้งเตือน', 'กรุณากรอกเลขที่บัญชีเป็นตัวเลขเท่านั้น', '⚠️'); return; } setRefundModal((prev) => ({ ...prev, submitting: true })); try { let bookBankUrl = ''; if (refundModal.bookBankFile) { const file = refundModal.bookBankFile; const fileExt = file.name.split('.').pop(); const filePath = `bookbank/bb_${refundModal.booking.booking_id}_${Date.now()}.${fileExt}`; const { error: upErr } = await supabase.storage.from('slips').upload(filePath, file, { upsert: true }); if (!upErr) { bookBankUrl = supabase.storage.from('slips').getPublicUrl(filePath).data?.publicUrl || ''; } } const { error: insErr } = await supabase.from('refund_requests').insert([{ booking_id: refundModal.booking.booking_id, customer_name: refundModal.accountName, bank_name: refundModal.bankName, account_no: refundModal.accountNo, account_name: refundModal.accountName, email: refundModal.email, phone: refundModal.phone, book_bank_url: bookBankUrl, status: 'รอดำเนินการ', }]); if (insErr) throw insErr; await supabase.from('bookings').update({ booking_status: 'ส่งเรื่องขอคืนเงินแล้ว' }).eq('booking_id', refundModal.booking.booking_id); showAlertModal('ส่งเรื่องขอคืนเงินสำเร็จ! 🎉', 'เจ้าหน้าที่ตรวจสอบและโอนเงินคืนเข้าบัญชีของท่านภายใน 1-3 วันทำการค่ะ', '💸'); setRefundModal({ show: false, booking: null }); loadBookings(currentUser); } catch (err) { showAlertModal('เกิดข้อผิดพลาด', err.message, '⚠️'); } finally { setRefundModal((prev) => ({ ...prev, submitting: false })); } }} style={{ flex: 1, backgroundColor: theme.red, color: '#ffffff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '900', cursor: refundModal.submitting ? 'not-allowed' : 'pointer', opacity: refundModal.submitting ? 0.7 : 1 }}>{refundModal.submitting ? 'กำลังส่งข้อมูลคิว...' : 'ยืนยันส่งเรื่องขอคืนเงิน'}</button>
+              <button type="button" disabled={refundModal.submitting} onClick={handleRequestRefund} style={{ flex: 1, backgroundColor: theme.red, color: '#ffffff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '900', cursor: refundModal.submitting ? 'not-allowed' : 'pointer', opacity: refundModal.submitting ? 0.7 : 1 }}>{refundModal.submitting ? 'กำลังส่งข้อมูลคิว...' : 'ยืนยันส่งเรื่องขอคืนเงิน'}</button>
             </div>
           </div>
         </div>
@@ -539,7 +512,7 @@ export default function BookingHistory() {
         <div onClick={() => setPreviewSlipUrl(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}>
           <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '20px', padding: '20px', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 25px 50px rgba(0,0,0,0.2)' }}>
             <h3 style={{ margin: '0 0 12px', color: theme.brown, fontSize: '16px' }}>หลักฐานการโอนเงิน (Slip)</h3>
-            <img src={previewSlipUrl} alt="Slip" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '12px' }} />
+            <PrivateDocumentImage value={previewSlipUrl} alt="Slip" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '12px' }} />
             <button type="button" onClick={() => setPreviewSlipUrl(null)} style={{ marginTop: '16px', backgroundColor: theme.brown, color: '#ffffff', border: 'none', padding: '8px 24px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' }}>ปิดหน้าต่าง</button>
           </div>
         </div>

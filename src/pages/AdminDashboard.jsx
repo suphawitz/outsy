@@ -1,5 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../client';
+import { adminAction } from '../services/booking';
+import { validateDocument } from '../lib/documents';
+import { thaiError } from '../lib/errors';
+import PrivateDocumentImage from '../components/PrivateDocumentImage';
 
 const COLORS = {
   red: '#e7191f',
@@ -55,9 +59,9 @@ export default function AdminDashboard() {
     type: 'success'
   });
 
-  const showAlert = (title, message, type = 'success') => {
+  const showAlert = useCallback((title, message, type = 'success') => {
     setAlertModal({ show: true, title, message, type });
-  };
+  }, []);
 
   const closeAlert = () => {
     setAlertModal({ show: false, title: '', message: '', type: 'success' });
@@ -103,7 +107,7 @@ export default function AdminDashboard() {
     const d = new Date();
     return { year: d.getFullYear(), month: d.getMonth() };
   });
-  const [loadingCalendar, setLoadingCalendar] = useState(false);
+  const [, setLoadingCalendar] = useState(false);
 
   const [packagesList, setPackagesList] = useState([]);
   const [selectedPkgId, setSelectedPkgId] = useState('');
@@ -145,7 +149,7 @@ export default function AdminDashboard() {
     }
   ]);
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     setLoadingBookings(true);
     try {
       const { data, error } = await supabase
@@ -198,13 +202,13 @@ export default function AdminDashboard() {
       
       setRefundRequests(refData || []);
     } catch (err) {
-      console.error('Fetch bookings error:', err);
+      showAlert('โหลดข้อมูลไม่สำเร็จ', thaiError(err), 'error');
     } finally {
       setLoadingBookings(false);
     }
-  };
+  }, [showAlert]);
 
-  const fetchPackages = async () => {
+  const fetchPackages = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('Tour_Packages')
@@ -213,15 +217,13 @@ export default function AdminDashboard() {
 
       if (error) throw error;
       setPackagesList(data || []);
-      if (data && data.length > 0 && !selectedPkgId) {
-        setSelectedPkgId(data[0].package_id);
-      }
+      if (data?.length) setSelectedPkgId(previous => previous || data[0].package_id);
     } catch (err) {
-      console.error('Fetch packages error:', err);
+      showAlert('โหลดข้อมูลไม่สำเร็จ', thaiError(err), 'error');
     }
-  };
+  }, [showAlert]);
 
-  const fetchCalendarData = async () => {
+  const fetchCalendarData = useCallback(async () => {
     setLoadingCalendar(true);
     try {
       const todayStr = new Date().toISOString().split('T')[0];
@@ -243,11 +245,11 @@ export default function AdminDashboard() {
       if (bookErr) throw bookErr;
       setSelectedDateBookings(bookData || []);
     } catch (err) {
-      console.error('Fetch calendar data error:', err);
+      showAlert('โหลดข้อมูลไม่สำเร็จ', thaiError(err), 'error');
     } finally {
       setLoadingCalendar(false);
     }
-  };
+  }, [activeCalendarDate, showAlert]);
 
   useEffect(() => {
     fetchBookings();
@@ -283,14 +285,14 @@ export default function AdminDashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchBookings, fetchPackages, fetchCalendarData]);
 
   useEffect(() => {
     if (activeTab === 'calendar') {
       setSelectedPkgFilter('ALL');
       fetchCalendarData();
     }
-  }, [activeCalendarDate, activeTab]);
+  }, [activeTab, fetchCalendarData]);
 
   useEffect(() => {
     if (!selectedPkgId) return;
@@ -329,14 +331,14 @@ export default function AdminDashboard() {
           .order('order_index', { ascending: true });
         setEditItineraries(itinData || []);
       } catch (err) {
-        console.error('Load Itinerary Error:', err);
+        showAlert('โหลดข้อมูลไม่สำเร็จ', thaiError(err), 'error');
       } finally {
         setLoadingItin(false);
       }
     }
 
     loadSchedulesAndItinerary();
-  }, [selectedPkgId, packagesList]);
+  }, [selectedPkgId, packagesList, showAlert]);
 
   const handleUpdateBookingStatus = (bookingId, newStatus) => {
     if (!bookingId) {
@@ -356,18 +358,9 @@ export default function AdminDashboard() {
         const targetId = Number(bookingId);
 
         try {
-          const { data: updatedRows, error } = await supabase
-            .from('bookings')
-            .update({ booking_status: newStatus })
-            .eq('booking_id', targetId)
-            .select();
-
-          if (error) throw error;
-
-          if (!updatedRows || updatedRows.length === 0) {
-            showAlert('อัปเดตไม่สำเร็จ', `ไม่พบรายการจอง #${targetId}`, 'error');
-            return;
-          }
+          const actionByStatus = { 'ชำระเงินแล้ว': 'approve_payment', 'รอชำระเงิน': 'reject_slip', 'ทริปเสร็จสิ้น': 'complete', 'เสร็จสิ้น': 'complete' };
+          const updated = await adminAction(actionByStatus[newStatus] || 'invalid', { booking_id: String(bookingId) });
+          newStatus = updated.booking_status;
 
           setBookings((prev) =>
             prev.map((b) => (Number(b.booking_id) === targetId ? { ...b, booking_status: newStatus } : b))
@@ -378,8 +371,7 @@ export default function AdminDashboard() {
           showAlert('อัปเดตสถานะสำเร็จ 🎉', `เปลี่ยนสถานะเป็น "${newStatus}" เรียบร้อยแล้ว`, 'success');
           fetchCalendarData();
         } catch (err) {
-          console.error('Update booking status error:', err);
-          showAlert('เกิดข้อผิดพลาด', `ไม่สามารถอัปเดตฐานข้อมูลได้: ${err.message}`, 'error');
+          showAlert('เกิดข้อผิดพลาด', `ไม่สามารถอัปเดตฐานข้อมูลได้: ${thaiError(err)}`, 'error');
         } finally {
           setUpdatingId(null);
         }
@@ -393,36 +385,13 @@ export default function AdminDashboard() {
       `รอบเดินทางวันที่ ${travelDate} (แพ็กเกจ ${pkgId}) มีผู้จองไม่ครบ 4 ท่าน คุณต้องการยกเลิกและเปลี่ยนสถานะการจองทั้งหมดเป็น "ยกเลิก (คืนเงินเต็มจำนวน)" หรือไม่?`,
       async () => {
         try {
-          const { data: targetBookings } = await supabase
-            .from('bookings')
-            .select('booking_id, travel_date')
-            .eq('package_id', pkgId)
-            .eq('travel_date', travelDate)
-            .not('booking_status', 'ilike', '%ยกเลิก%');
+          await adminAction('cancel_schedule', { package_id: pkgId, travel_date: travelDate });
 
-          if (targetBookings && targetBookings.length > 0) {
-            for (let tb of targetBookings) {
-              await supabase
-                .from('bookings')
-                .update({ 
-                  booking_status: 'ยกเลิก (คืนเงินเต็มจำนวน)', 
-                  old_travel_date: tb.travel_date 
-                })
-                .eq('booking_id', tb.booking_id);
-            }
-          }
-
-          await supabase
-            .from('Tour_Schedules')
-            .delete()
-            .eq('package_id', pkgId)
-            .eq('travel_date', travelDate);
-
-          showAlert('ยกเลิกทัวร์สำเร็จ', 'ระบบได้เปลี่ยนสถานะการจองเป็นยกเลิกและลบรอบเดินทางนี้ออกเรียบร้อยแล้ว', 'success');
+          showAlert('ยกเลิกทัวร์สำเร็จ', 'ระบบยกเลิกการจองและปิดรอบเดินทาง โดยเก็บประวัติไว้แล้ว', 'success');
           await fetchBookings();
           await fetchCalendarData();
         } catch (err) {
-          showAlert('เกิดข้อผิดพลาด', err.message, 'error');
+          showAlert('เกิดข้อผิดพลาด', thaiError(err), 'error');
         }
       }
     );
@@ -434,19 +403,14 @@ export default function AdminDashboard() {
       `คุณต้องการยกเลิกคำสั่งจอง #${bookingId} นี้ใช่หรือไม่?`,
       async () => {
         try {
-          const { error } = await supabase
-            .from('bookings')
-            .update({ booking_status: 'ยกเลิก (คืนเงินเต็มจำนวน)' })
-            .eq('booking_id', bookingId);
-
-          if (error) throw error;
+          await adminAction('cancel_booking', { booking_id: String(bookingId) });
 
           showAlert('ยกเลิกสำเร็จ', `คำสั่งจอง #${bookingId} ถูกยกเลิกเรียบร้อยแล้ว`, 'success');
           setSelectedBookingDetail(null);
           await fetchBookings();
           await fetchCalendarData();
         } catch (err) {
-          showAlert('เกิดข้อผิดพลาด', err.message, 'error');
+          showAlert('เกิดข้อผิดพลาด', thaiError(err), 'error');
         }
       }
     );
@@ -454,20 +418,18 @@ export default function AdminDashboard() {
 
   const handleDeleteRefundRequest = async (requestId) => {
     openConfirm(
-      'ยืนยันการลบรายการขอคืนเงิน? 🗑️',
-      'คุณต้องการลบคำขอคืนเงินนี้ออกจากรายการใช่หรือไม่?',
+      'ยืนยันปฏิเสธคำขอคืนเงิน?',
+      'คุณต้องการปฏิเสธคำขอคืนเงินนี้ใช่หรือไม่? ระบบจะเก็บประวัติคำขอไว้',
       async () => {
         try {
-          const { error } = await supabase
-            .from('refund_requests')
-            .delete()
-            .eq('id', requestId);
+          const request = refundRequests.find(item => item.id === requestId);
+          if (!request) throw new Error('OUTSY_STATE');
+          await adminAction('reject_refund', { refund_id: requestId, booking_id: String(request.booking_id) });
 
-          if (error) throw error;
-          showAlert('ลบสำเร็จ 🎉', 'ลบรายการขอคืนเงินออกจากระบบเรียบร้อยแล้ว', 'success');
+          showAlert('ปฏิเสธคำขอแล้ว', 'เก็บประวัติคำขอไว้สำหรับตรวจสอบ', 'success');
           fetchBookings();
         } catch (err) {
-          showAlert('เกิดข้อผิดพลาด', err.message, 'error');
+          showAlert('เกิดข้อผิดพลาด', thaiError(err), 'error');
         }
       }
     );
@@ -479,13 +441,12 @@ export default function AdminDashboard() {
       `คุณต้องการเปลี่ยนสถานะการขอคืนเงินรายการนี้เป็น "คืนเงินเรียบร้อยแล้ว" ใช่หรือไม่?`,
       async () => {
         try {
-          await supabase.from('refund_requests').update({ status: 'คืนเงินแล้ว' }).eq('id', reqId);
-          await supabase.from('bookings').update({ booking_status: 'คืนเงินเรียบร้อยแล้ว' }).eq('booking_id', bookingId);
+          await adminAction('mark_refunded', { refund_id: reqId, booking_id: String(bookingId) });
 
           showAlert('สำเร็จ 🎉', 'อัปเดตสถานะการคืนเงินให้ลูกค้าเรียบร้อยแล้ว', 'success');
           fetchBookings();
         } catch (err) {
-          showAlert('เกิดข้อผิดพลาด', err.message, 'error');
+          showAlert('เกิดข้อผิดพลาด', thaiError(err), 'error');
         }
       }
     );
@@ -497,33 +458,29 @@ export default function AdminDashboard() {
       'คุณแน่ใจหรือไม่ว่าต้องการลบรอบวันเดินทางนี้ออกจากแพ็กเกจ?',
       async () => {
         try {
-          const { error } = await supabase
-            .from('Tour_Schedules')
-            .delete()
-            .eq('schedule_id', scheduleId);
+          await adminAction('delete_schedule', { schedule_id: String(scheduleId) });
 
-          if (error) throw error;
           showAlert('ลบแพ็กเกจสำเร็จ', 'ลบรอบวันเดินทางนี้ออกจากระบบเรียบร้อยแล้ว', 'success');
           fetchCalendarData();
         } catch (err) {
-          showAlert('เกิดข้อผิดพลาด', err.message, 'error');
+          showAlert('เกิดข้อผิดพลาด', thaiError(err), 'error');
         }
       }
     );
   };
 
   const uploadImageToStorage = async (file, prefix) => {
-    const fileExt = file.name.split('.').pop();
+    const fileExt = await validateDocument(file);
     const cleanFileName = `${prefix}_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
     const filePath = `itineraries/${cleanFileName}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('slips')
-      .upload(filePath, file, { cacheControl: '3600', upsert: true });
+      .from('tourist_images')
+      .upload(filePath, file, { contentType: file.type, cacheControl: '3600', upsert: false });
 
     if (uploadError) throw uploadError;
 
-    const { data: publicUrlData } = supabase.storage.from('slips').getPublicUrl(filePath);
+    const { data: publicUrlData } = supabase.storage.from('tourist_images').getPublicUrl(filePath);
     return publicUrlData?.publicUrl || '';
   };
 
@@ -625,8 +582,7 @@ export default function AdminDashboard() {
           setSelectedPkgId(newPkgForm.package_id.trim().toUpperCase());
           setActiveTab('schedules');
         } catch (err) {
-          console.error('Create Package Error:', err);
-          showAlert('เกิดข้อผิดพลาดในการสร้าง', err.message, 'error');
+          showAlert('เกิดข้อผิดพลาดในการสร้าง', thaiError(err), 'error');
         } finally {
           setCreatingPkg(false);
         }
@@ -685,7 +641,7 @@ export default function AdminDashboard() {
           showAlert('บันทึกข้อมูลเรียบร้อย! 💾', `บันทึกรายละเอียดของ ${editingPkg.package_id} สำเร็จแล้ว`, 'success');
           fetchPackages();
         } catch (err) {
-          showAlert('บันทึกไม่สำเร็จ', err.message, 'error');
+          showAlert('บันทึกไม่สำเร็จ', thaiError(err), 'error');
         } finally {
           setSavingPkg(false);
         }
@@ -717,7 +673,7 @@ export default function AdminDashboard() {
           showAlert('เพิ่มรอบวันสำเร็จ! 📅', `เปิดรอบเดินทางใหม่ในวันที่ ${newTravelDate} เรียบร้อยแล้ว`, 'success');
           fetchCalendarData();
         } catch (err) {
-          showAlert('เพิ่มรอบวันไม่สำเร็จ', err.message, 'error');
+          showAlert('เพิ่มรอบวันไม่สำเร็จ', thaiError(err), 'error');
         }
       }
     );
@@ -729,12 +685,12 @@ export default function AdminDashboard() {
       'คุณแน่ใจหรือไม่ว่าต้องการลบรอบวันเดินทางนี้ออกจากแพ็กเกจ?',
       async () => {
         try {
-          await supabase.from('Tour_Schedules').delete().eq('schedule_id', scheduleId);
+          await adminAction('delete_schedule', { schedule_id: String(scheduleId) });
           setPkgSchedules((prev) => prev.filter((s) => s.schedule_id !== scheduleId));
           showAlert('ลบรอบวันเรียบร้อย', 'ลบรอบวันเดินทางออกแล้ว', 'success');
           fetchCalendarData();
         } catch (err) {
-          showAlert('ลบไม่สำเร็จ', err.message, 'error');
+          showAlert('ลบไม่สำเร็จ', thaiError(err), 'error');
         }
       }
     );
@@ -1032,14 +988,7 @@ export default function AdminDashboard() {
                             {b.slip ? (
                               <button
                                 type="button"
-                                onClick={() => {
-                                  if (b.slip.startsWith('http')) {
-                                    setPreviewSlipUrl(b.slip);
-                                  } else {
-                                    const { data: pubData } = supabase.storage.from('slips').getPublicUrl(b.slip);
-                                    setPreviewSlipUrl(pubData?.publicUrl || b.slip);
-                                  }
-                                }}
+                                onClick={() => setPreviewSlipUrl(b.slip)}
                                 style={{
                                   backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', color: '#059669',
                                   padding: '5px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer',
@@ -1352,26 +1301,32 @@ export default function AdminDashboard() {
                         <div>
                           <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#065f46' }}>#{b.booking_id} • {b.customer_name} ({b.package_id})</div>
                           <div style={{ fontSize: '12px', color: '#047857', marginTop: '2px' }}>
-                            รอบเดิม: <b style={{ color: COLORS.red }}>{b.old_travel_date || '-'}</b> | วันที่ลูกค้าเลือกใหม่: <b style={{ color: COLORS.cyan }}>{b.travel_date}</b>
+                            รอบเดิม: <b style={{ color: COLORS.red }}>{b.old_travel_date || '-'}</b> | วันที่ลูกค้าเลือกใหม่: <b style={{ color: COLORS.cyan }}>{calendarSchedules.find(s => String(s.schedule_id) === String(b.requested_schedule_id))?.travel_date || 'ดูคำขอในฐานข้อมูล'}</b>
                           </div>
                         </div>
                         <button 
                           type="button" 
                           onClick={async () => {
                             try {
-                              const { error } = await supabase.from('bookings').update({ 
-                                booking_status: 'ชำระเงินแล้ว' 
-                              }).eq('booking_id', b.booking_id);
-                              if (error) throw error;
+                              await adminAction('approve_reschedule', { booking_id: String(b.booking_id) });
                               showAlert('อนุมัติวันใหม่สำเร็จ 🎉', `ย้ายรอบการจอง #${b.booking_id} เรียบร้อยแล้ว`, 'success');
                               fetchBookings();
                             } catch (err) {
-                              showAlert('เกิดข้อผิดพลาด', err.message, 'error');
+                              showAlert('เกิดข้อผิดพลาด', thaiError(err), 'error');
                             }
                           }}
                           style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '9px 18px', borderRadius: '12px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
                         >
                           ✓ อนุมัติวันใหม่ให้ลูกค้า
+                        </button>
+                        <button type="button" onClick={async () => {
+                          try {
+                            await adminAction('reject_reschedule', { booking_id: String(b.booking_id) });
+                            showAlert('ปฏิเสธคำขอแล้ว', 'คืนสถานะการจองก่อนขอเปลี่ยนวันเรียบร้อยแล้ว', 'success');
+                            fetchBookings();
+                          } catch (err) { showAlert('เกิดข้อผิดพลาด', thaiError(err), 'error'); }
+                        }} style={{ backgroundColor: COLORS.red, color: '#fff', border: 'none', padding: '9px 18px', borderRadius: '12px', cursor: 'pointer' }}>
+                          ปฏิเสธคำขอ
                         </button>
                       </div>
                     ))
@@ -1413,7 +1368,7 @@ export default function AdminDashboard() {
                               </button>
                             )}
 
-                            <button type="button" onClick={() => handleDeleteRefundRequest(req.id)} style={{ backgroundColor: '#e31515', color: '#efe3e3', border: '1px solid #c12121', padding: '6px 12px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>  ลบ  </button>
+                            <button type="button" disabled={req.status !== 'รอดำเนินการ'} onClick={() => handleDeleteRefundRequest(req.id)} style={{ backgroundColor: '#e31515', color: '#efe3e3', border: '1px solid #c12121', padding: '6px 12px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>ปฏิเสธคำขอ</button>
                           </div>
                         </div>
                       );
@@ -1575,7 +1530,7 @@ export default function AdminDashboard() {
                               const url = await uploadImageToStorage(e.target.files[0], 'cover');
                               setEditingPkg({ ...editingPkg, image_path: url });
                             } catch (err) {
-                              showAlert('อัปโหลดไม่สำเร็จ', err.message, 'error');
+                              showAlert('อัปโหลดไม่สำเร็จ', thaiError(err), 'error');
                             } finally {
                               setSavingPkg(false);
                             }
@@ -1725,7 +1680,7 @@ export default function AdminDashboard() {
                                             return next;
                                           });
                                         } catch (err) {
-                                          showAlert('อัปโหลดรูปไม่สำเร็จ', err.message, 'error');
+                                          showAlert('อัปโหลดรูปไม่สำเร็จ', thaiError(err), 'error');
                                         } finally {
                                           setUploadingIndex(null);
                                         }
@@ -1872,7 +1827,7 @@ export default function AdminDashboard() {
                           const url = await uploadImageToStorage(e.target.files[0], 'cover');
                           setNewPkgForm({ ...newPkgForm, image_path: url });
                         } catch (err) {
-                          showAlert('อัปโหลดไม่สำเร็จ', err.message, 'error');
+                          showAlert('อัปโหลดไม่สำเร็จ', thaiError(err), 'error');
                         } finally {
                           setUploadingMainCover(false);
                         }
@@ -2033,7 +1988,7 @@ export default function AdminDashboard() {
                                       return next;
                                     });
                                   } catch (err) {
-                                    showAlert('อัปโหลดรูปไม่สำเร็จ', err.message, 'error');
+                                    showAlert('อัปโหลดรูปไม่สำเร็จ', thaiError(err), 'error');
                                   } finally {
                                     setUploadingIndex(null);
                                   }
@@ -2162,11 +2117,7 @@ export default function AdminDashboard() {
                 {selectedRefundDetail.book_bank_url ? (
                   <button
                     type="button"
-                    onClick={() => {
-                      const url = selectedRefundDetail.book_bank_url;
-                      const fullUrl = url.startsWith('http') ? url : supabase.storage.from('slips').getPublicUrl(url).data?.publicUrl;
-                      setPreviewBookBankUrl(fullUrl);
-                    }}
+                    onClick={() => setPreviewBookBankUrl(selectedRefundDetail.book_bank_url)}
                     style={{ backgroundColor: '#db2777', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
                   >
                     ดูสมุดบัญชี
@@ -2190,10 +2141,7 @@ export default function AdminDashboard() {
                     {slipVal ? (
                       <button
                         type="button"
-                        onClick={() => {
-                          const fullUrl = slipVal.startsWith('http') ? slipVal : supabase.storage.from('slips').getPublicUrl(slipVal).data?.publicUrl;
-                          setPreviewSlipUrl(fullUrl);
-                        }}
+                        onClick={() => setPreviewSlipUrl(slipVal)}
                         style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
                       >
                         ดูสลิปเดิม
@@ -2314,14 +2262,7 @@ export default function AdminDashboard() {
                   <span style={{ fontWeight: 'bold', color: '#065f46' }}>📎 แนบหลักฐานสลิปโอนเงินแล้ว</span>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (selectedBookingDetail.slip.startsWith('http')) {
-                        setPreviewSlipUrl(selectedBookingDetail.slip);
-                      } else {
-                        const { data: pubData } = supabase.storage.from('slips').getPublicUrl(selectedBookingDetail.slip);
-                        setPreviewSlipUrl(pubData?.publicUrl || selectedBookingDetail.slip);
-                      }
-                    }}
+                    onClick={() => setPreviewSlipUrl(selectedBookingDetail.slip)}
                     style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '8px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
                   >
                     ดูสลิป
@@ -2384,7 +2325,7 @@ export default function AdminDashboard() {
         <div onClick={() => setPreviewSlipUrl(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10005, padding: '20px' }}>
           <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '20px', padding: '20px', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 25px 50px rgba(0,0,0,0.3)' }}>
             <h3 style={{ margin: '0 0 12px 0', color: COLORS.brown }}>หลักฐานการโอนเงิน (Slip)</h3>
-            <img src={previewSlipUrl} alt="Slip" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '12px' }} />
+            <PrivateDocumentImage value={previewSlipUrl} alt="Slip" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '12px' }} />
             <button onClick={() => setPreviewSlipUrl(null)} style={{ marginTop: '16px', backgroundColor: COLORS.brown, color: '#ffffff', border: 'none', padding: '8px 24px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' }}>ปิดหน้าต่าง</button>
           </div>
         </div>
@@ -2395,7 +2336,7 @@ export default function AdminDashboard() {
         <div onClick={() => setPreviewBookBankUrl(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10006, padding: '20px' }}>
           <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: '#ffffff', borderRadius: '20px', padding: '20px', maxWidth: '440px', width: '100%', textAlign: 'center', boxShadow: '0 25px 50px rgba(0,0,0,0.3)' }}>
             <h3 style={{ margin: '0 0 12px 0', color: COLORS.brown, fontSize: '16px' }}>หลักฐานสมุดบัญชี (Book Bank)</h3>
-            <img src={previewBookBankUrl} alt="Book Bank" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '12px' }} />
+            <PrivateDocumentImage value={previewBookBankUrl} alt="Book Bank" style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain', borderRadius: '12px' }} />
             <button type="button" onClick={() => setPreviewBookBankUrl(null)} style={{ marginTop: '16px', backgroundColor: COLORS.brown, color: '#ffffff', border: 'none', padding: '8px 24px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' }}>ปิดหน้าต่าง</button>
           </div>
         </div>

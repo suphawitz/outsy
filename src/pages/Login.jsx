@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { supabase } from '../client';
+import { thaiError } from '../lib/errors';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const requestedReturn = location.state?.returnUrl;
+  const returnUrl = typeof requestedReturn === 'string' && requestedReturn.startsWith('/') && !requestedReturn.startsWith('//') && !requestedReturn.includes('\\') ? requestedReturn : '/packages';
 
   /* =========================
      THEME
@@ -70,6 +74,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (loading) return;
     setErrorMsg('');
     setLoading(true);
 
@@ -91,7 +96,7 @@ export default function Login() {
         if (error) throw error;
 
         triggerToast(
-          'ส่งลิงก์รีเซ็ตรหัสผ่านไปที่อีเมลของคุณแล้ว'
+          'หากอีเมลนี้มีบัญชี ระบบจะส่งลิงก์ตั้งรหัสผ่านใหม่ให้ กรุณาตรวจสอบอีเมล'
         );
 
         setMode('signin');
@@ -120,51 +125,21 @@ export default function Login() {
           throw signUpError;
         }
 
-        /* =========================
-           INSERT USER PROFILE
-        ========================= */
-
-        if (data?.user) {
-          const { error: userInsertError } =
-            await supabase
-              .from('users')
-              .insert([
-                {
-                  auth_id: data.user.id,
-
-                  username:
-                    fullName.trim() ||
-                    email.split('@')[0],
-
-                  email: email.trim(),
-
-                  role: 'customer',
-
-                  imagee: null,
-                },
-              ]);
-
-          if (userInsertError) {
-            console.error(
-              'User profile insert error:',
-              userInsertError
-            );
-          }
+        // public.users is created by the verified database auth trigger.
+        // Supabase can mask duplicate signups; keep the no-session response neutral.
+        if (data?.user?.identities?.length === 0) {
+          setErrorMsg('หากอีเมลนี้มีบัญชีแล้ว กรุณาเข้าสู่ระบบหรือลืมรหัสผ่าน');
+          return;
         }
 
-        triggerToast(
-          `ยินดีต้อนรับคุณ ${
-            fullName || email
-          }!`
-        );
-
         if (data?.session) {
+          triggerToast('สมัครสมาชิกสำเร็จแล้ว');
           setTimeout(() => {
-            navigate('/packages');
+            navigate(returnUrl, { replace: true });
           }, 1200);
         } else {
           setErrorMsg(
-            'สมัครสมาชิกเรียบร้อยแล้ว กรุณาตรวจสอบอีเมลยืนยันตัวตน'
+            'หากสมัครสมาชิกสำเร็จ กรุณาตรวจสอบอีเมลเพื่อยืนยันบัญชี หรือเข้าสู่ระบบหากมีบัญชีแล้ว'
           );
         }
 
@@ -173,7 +148,7 @@ export default function Login() {
       ========================= */
 
       } else {
-        const { error } =
+        const { data: signInData, error } =
           await supabase.auth.signInWithPassword({
             email: email.trim(),
             password: password,
@@ -183,19 +158,22 @@ export default function Login() {
           throw error;
         }
 
+        if (!signInData?.session) {
+          setErrorMsg('เข้าสู่ระบบไม่สำเร็จ กรุณายืนยันอีเมลแล้วลองใหม่');
+          return;
+        }
         triggerToast(
           'เข้าสู่ระบบสำเร็จแล้ว!'
         );
 
         setTimeout(() => {
-          navigate('/packages');
+          navigate(returnUrl, { replace: true });
         }, 800);
       }
 
     } catch (err) {
       setErrorMsg(
-        err.message ||
-          'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง'
+        thaiError(err)
       );
     } finally {
       setLoading(false);

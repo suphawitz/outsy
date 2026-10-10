@@ -19,56 +19,35 @@ export default function Navbar() {
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    // 1. ตรวจสอบ session ปัจจุบัน
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserInfo(session.user.id, session.user.email);
-      }
-    });
-
-    // 2. ดักฟังเหตุการณ์ เข้าสู่ระบบ / ออกจากระบบ แบบ Realtime
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserInfo(session.user.id, session.user.email);
-      } else {
-        setUsername('');
-        setIsAdmin(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // ดึงชื่อผู้ใช้และตรวจสอบสิทธิ์ Admin จากตาราง users
-  const fetchUserInfo = async (authId, email) => {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('username, role')
-        .eq('auth_id', authId)
-        .maybeSingle();
-
-      if (data) {
-        if (data.username) setUsername(data.username);
-        else setUsername(email ? email.split('@')[0] : 'ผู้ใช้งาน');
-
-        // ตรวจสอบว่า role เป็น Admin หรือไม่ (รองรับทั้งตัวพิมพ์เล็กและใหญ่)
-        if (data.role && (data.role.toLowerCase() === 'admin')) {
-          setIsAdmin(true);
-        } else {
-          setIsAdmin(false);
-        }
-      } else {
-        setUsername(email ? email.split('@')[0] : 'ผู้ใช้งาน');
-        setIsAdmin(false);
-      }
-    } catch {
-      setUsername(email ? email.split('@')[0] : 'ผู้ใช้งาน');
+    let active = true;
+    let generation = 0;
+    async function refreshProfile() {
+      const request = ++generation;
       setIsAdmin(false);
+      setUsername('');
+      const { data, error } = await supabase.auth.getUser();
+      if (!active || request !== generation) return;
+      const verifiedUser = error ? null : data.user;
+      setUser(verifiedUser);
+      if (!verifiedUser) return;
+      const { data: profile, error: profileError } = await supabase.from('users')
+        .select('username, role').eq('auth_id', verifiedUser.id).maybeSingle();
+      if (!active || request !== generation) return;
+      setUsername(profileError ? 'ผู้ใช้งาน' : (profile?.username || 'ผู้ใช้งาน'));
+      setIsAdmin(!profileError && profile?.role?.toLowerCase() === 'admin');
     }
-  };
+    void refreshProfile().catch(() => { if (active) { setUser(null); setIsAdmin(false); } });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      // No awaited Supabase call inside the auth lock/callback.
+      if (event === 'SIGNED_OUT') {
+        generation++; setUser(null); setUsername(''); setIsAdmin(false); setDropdownOpen(false);
+      } else {
+        setIsAdmin(false);
+        setTimeout(() => { if (active) void refreshProfile().catch(() => { if (active) setIsAdmin(false); }); }, 0);
+      }
+    });
+    return () => { active = false; generation++; subscription.unsubscribe(); };
+  }, []);
 
   // ปิดเมนูลอยเมื่อคลิกที่อื่น
   useEffect(() => {
@@ -90,12 +69,13 @@ export default function Navbar() {
   // ยืนยันการออกจากระบบจริง
   const confirmLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
       setLogoutModal(false);
       setIsAdmin(false);
       navigate('/');
     } catch (err) {
-      console.error('Logout error:', err.message);
+      alert('ออกจากระบบไม่สำเร็จ กรุณาลองใหม่');
       setLogoutModal(false);
     }
   };

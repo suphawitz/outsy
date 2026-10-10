@@ -67,6 +67,7 @@ export default function TourDetail() {
       const { data: schData } = await supabase
         .from('Tour_Schedules')
         .select('*')
+        .eq('status', 'open')
         .eq('package_id', id)
         .gte('travel_date', todayStr)
         .order('travel_date', { ascending: true });

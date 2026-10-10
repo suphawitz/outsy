@@ -89,7 +89,7 @@ export default function TourPackages() {
 
       const [pkgRes, schRes] = await Promise.all([
         supabase.from('Tour_Packages').select('*').order('package_id', { ascending: true }),
-        supabase.from('Tour_Schedules').select('*')
+        supabase.from('Tour_Schedules').select('*').eq('status', 'open')
       ]);
 
       if (!pkgRes.error && pkgRes.data) {
