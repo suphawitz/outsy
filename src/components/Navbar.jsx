@@ -181,7 +181,7 @@ export default function Navbar() {
               display: 'block'
             }}
             onError={(e) => {
-              e.target.src = '/images/logo.png';
+              e.target.onerror = null; e.target.style.display = 'none';
             }}
           />
         </Link>

@@ -109,6 +109,7 @@ export default function Login() {
           password: password,
 
           options: {
+            emailRedirectTo: `${window.location.origin}/login`,
             data: {
               full_name: fullName.trim(),
             },
@@ -216,6 +217,7 @@ export default function Login() {
 
   return (
     <div
+      className="login-page-wrapper"
       style={{
         minHeight: '100vh',
 
@@ -224,7 +226,7 @@ export default function Login() {
         ========================= */
 
         backgroundImage:
-          'url("./logologinfull.png")',
+          'url("/logologinfull.png")',
 
         backgroundSize: 'cover',
 
@@ -317,6 +319,7 @@ export default function Login() {
       ========================= */}
 
       <div
+        className="login-page-card"
         style={{
           width: '100%',
 

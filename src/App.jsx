@@ -1,13 +1,15 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import TourPackages from './pages/TourPackages';
-import TourDetail from './pages/TourDetail';
-import Booking from './pages/Booking';
-import BookingHistory from './pages/BookingHistory';
-import Login from './pages/Login';
-import AdminDashboard from './pages/AdminDashboard';
-import BookingDetail from './pages/BookingDetail';
+const Home = lazy(() => import('./pages/Home'));
+const TourPackages = lazy(() => import('./pages/TourPackages'));
+const TourDetail = lazy(() => import('./pages/TourDetail'));
+const Booking = lazy(() => import('./pages/Booking'));
+const BookingHistory = lazy(() => import('./pages/BookingHistory'));
+const Login = lazy(() => import('./pages/Login'));
+const UpdatePassword = lazy(() => import('./pages/UpdatePassword'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const BookingDetail = lazy(() => import('./pages/BookingDetail'));
 import AdminRoute from './components/AdminRoute'; 
 
 export default function App() {
@@ -17,6 +19,7 @@ export default function App() {
       <Navbar />
 
       {/* ระบบสลับหน้าเว็บ */}
+      <Suspense fallback={<div role="status" style={{ padding: 40 }}>กำลังโหลด...</div>}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/packages" element={<TourPackages />} />
@@ -28,6 +31,8 @@ export default function App() {
         <Route path="/history" element={<BookingHistory />} />
         <Route path="/booking-detail/:bookingId" element={<BookingDetail />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/update-password" element={<UpdatePassword />} />
+        <Route path="*" element={<div style={{ padding: 40 }}><h1>ไม่พบหน้าที่ต้องการ</h1><a href="/">กลับหน้าแรก</a></div>} />
         
         {/* ล็อกเส้นทาง Admin เฉพาะบัญชีที่มี role เป็น Admin เท่านั้น */}
         <Route path="/admin" element={
@@ -37,6 +42,7 @@ export default function App() {
         } />
       
       </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
