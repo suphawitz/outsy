@@ -100,3 +100,11 @@ test('report charts rank active bookings, join primary provinces and fill empty 
  assert.equal(result.months[9].value,2000);
  assert.equal(result.months[0].count,0);
 });
+test('month dropdown contains the latest twelve months and older booking months in Bangkok order',()=>{
+ const months=dashboard.dashboardMonths([{created_at:'2024-01-31T18:00:00Z'}],'2026-10-12');
+ assert.equal(months[0],'2026-10');
+ assert.ok(months.includes('2025-11'));
+ assert.ok(months.includes('2024-02'));
+ assert.ok(!months.includes('2024-01'));
+ assert.equal(new Set(months).size,months.length);
+});

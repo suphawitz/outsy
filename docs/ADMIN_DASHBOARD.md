@@ -24,7 +24,7 @@ Work queues and refund summaries use all current data and do not change with the
 
 ## Verification
 
-`npm test`: 29 passed. `npm run build` and `git diff --check`: passed.
+`npm test`: 30 passed. `npm run build` and `git diff --check`: passed.
 
 Browser QA used actual components with a temporary local read-only fixture client: month selection, all selection, absence of removed sections and package filtering, and document widths at 320/375/768/1440px. Fixtures and auth substitution are not included in the app. Real authenticated reads require signing in as an admin at `/admin`.
 
@@ -38,3 +38,11 @@ Following the supplied reference image, retain the existing four top cards and a
 - Accessible expandable data tables and UTF-8 CSV export containing the current top packages, all province totals and the selected year's monthly values. No customer identities are exported.
 
 Browser checks covered all four responsive widths, month/all state and the monthly data table. Export was downloaded successfully to the normal Downloads folder; parsed CSV values matched the synthetic fixture's province totals and September/October values. Browser download-event tracking timed out, so the saved file was verified directly. No Supabase settings or records were changed.
+
+## Dashboard presentation update
+
+The header now groups one month/all dropdown, Export CSV and refresh together. Month choices include the latest twelve calendar months plus any older months containing bookings, with Thai month/year labels. The existing annual-report year selector remains available when “all” is selected; it controls only the monthly chart and its CSV section.
+
+The dashboard palette uses OUTSY red #e7191f, yellow #fdd501, cyan #2bcdd1 and brown #573e33, with light tints for card backgrounds. The work-queue heading is an h2 outside its panel, matching the overview heading.
+
+Browser QA confirmed month/all totals, header control order, no separate month input, the work heading outside the card, and no document overflow at 320/375/768/1440px. No database settings or records changed.

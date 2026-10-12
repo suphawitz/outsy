@@ -167,3 +167,14 @@ export function reportCharts(data, { from = '', to, year }) {
   for (const b of annual.rows) { const bucket = months[Number(b.day.slice(5, 7)) - 1]; bucket.count++; if (confirmed(b.group)) bucket.value += b.value; }
   return { topPackages: selected.ranking.filter(p => p.activeCount > 0).slice(0, 5), provinces: ranked, months };
 }
+
+export function dashboardMonths(bookings = [], today = bangkokDay()) {
+  const months = new Set();
+  const current = new Date(`${today.slice(0, 7)}-01T00:00:00Z`);
+  for (let i = 0; i < 12; i++) {
+    months.add(current.toISOString().slice(0, 7));
+    current.setUTCMonth(current.getUTCMonth() - 1);
+  }
+  bookings.forEach(b => { const day = b.created_at ? bangkokDay(b.created_at) : ''; if (validDay(day)) months.add(day.slice(0, 7)); });
+  return [...months].sort((a, b) => b.localeCompare(a));
+}

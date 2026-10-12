@@ -5,7 +5,7 @@
 .admin-overview button { cursor: pointer; border: 1px solid #e6ebf1; border-radius: 12px; background: #fff; color: #573e33; padding: 10px 14px; font-size: 12px; font-weight: 700; min-height: 44px; }
 .admin-overview button:disabled { cursor: wait; opacity: .6; }
 .admin-overview button:hover:not(:disabled) { border-color: #2bcdd1; }
-.dashboard-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:24px; }
+.dashboard-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:10px; }
 .dashboard-eyebrow { font-size:10px; font-weight:800; letter-spacing:1.2px; color:#738096; }
 .dashboard-header h2 { font-size:30px; color:#573e33; margin:4px 0 8px; }
 .dashboard-header p, .dashboard-panel-heading p { font-size:12px; color:#738096; margin:0; line-height:1.8; }
@@ -58,3 +58,15 @@
 .report-line-legend { display:flex; gap:20px; flex-wrap:wrap; font-size:12px; margin-bottom:16px; }.report-line-legend span { display:flex; align-items:center; gap:8px; }.report-line-legend i { display:inline-block; width:20px; height:3px; }
 .report-year { display:flex; align-items:center; gap:12px; font-size:12px; margin-bottom:16px; }.report-year select { min-height:44px; padding:8px; border:1px solid #e6ebf1; border-radius:10px; }
 @media(max-width:640px) { .report-year select { font-size:16px; }.dashboard-reports .dashboard-table-scroll table { min-width:460px; } }
+/* OUTSY dashboard controls and brand palette. */
+.dashboard-header-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.dashboard-header-actions select { font:inherit; color:#573e33; background:#fff; border:1px solid #e6ebf1; border-radius:12px; padding:10px 12px; min-height:44px; min-width:180px; font-size:13px; }
+.admin-overview .dashboard-export { background:#e7191f; border-color:#e7191f; color:#fff; }
+.admin-overview .dashboard-export:hover:not(:disabled) { background:#cb151a; border-color:#cb151a; }
+.admin-overview .mint { background:#eafafb; }
+.admin-overview .dashboard-work .cyan { border-top:3px solid #2bcdd1; }
+.admin-overview .dashboard-work .yellow { border-top:3px solid #fdd501; }
+.admin-overview .dashboard-work .mint { background:#f5f0ed; border-top:3px solid #573e33; }
+.admin-overview .dashboard-work .pink { border-top:3px solid #e7191f; }
+.dashboard-work-heading { margin-top:30px; margin-bottom:18px; }
+@media(max-width:640px) { .dashboard-header-actions { width:100%; }.dashboard-header-actions select { flex:1 1 100%; width:100%; font-size:16px; }.dashboard-header-actions button { flex:1 1 120px; } }
