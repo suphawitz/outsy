@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../client';
 import PrivateDocumentImage from '../components/PrivateDocumentImage';
+import AdminOverview from '../components/admin/AdminOverview';
 import { validateImage } from '../lib/privateDocuments';
 
 const COLORS = {
@@ -48,7 +49,7 @@ const calculateDurationText = (start, end) => {
 };
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('bookings');
+  const [activeTab, setActiveTab] = useState('overview');
 
   const [alertModal, setAlertModal] = useState({
     show: false,
@@ -830,6 +831,10 @@ export default function AdminDashboard() {
             top: '90px'
           }}>
             
+            <button type="button" onClick={() => setActiveTab('overview')} style={{ width: '100%', padding: '14px', borderRadius: '14px', border: 'none', backgroundColor: activeTab === 'overview' ? COLORS.brown : '#f6f8fb', color: activeTab === 'overview' ? '#fff' : COLORS.brown, fontWeight: '800', fontSize: '13px', cursor: 'pointer', textAlign: 'left' }}>
+              📊 ภาพรวม Dashboard
+            </button>
+
             <div>
               <div style={{ fontSize: '11px', fontWeight: '900', color: COLORS.textMuted, textTransform: 'uppercase', letterSpacing: '0.8px', padding: '0 12px 10px' }}>
                 1. การจัดการแพ็กเกจ
@@ -892,7 +897,7 @@ export default function AdminDashboard() {
                     <span style={{ fontSize: '16px' }}>📋</span>
                     <span>รายการจอง & สลิป</span>
                   </div>
-                  <span style={{ backgroundColor: activeTab === 'bookings' ? '#f59e0b' : '#f1f5f9', color: activeTab === 'bookings' ? '#fff' : COLORS.textMuted, fontSize: '11px', padding: '2px 8px', borderRadius: '9999px', fontWeight: 'bold' }}>
+                  <span className="admin-sidebar-booking-count" style={{ backgroundColor: activeTab === 'bookings' ? '#f59e0b' : '#f1f5f9', color: activeTab === 'bookings' ? '#fff' : COLORS.textMuted, fontSize: '11px', padding: '2px 8px', borderRadius: '9999px', fontWeight: 'bold' }}>
                     {bookings.filter(b => b.booking_status !== 'ทริปเสร็จสิ้น' && b.booking_status !== 'เสร็จสิ้น' && !b.booking_status.includes('ยกเลิก')).length}
                   </span>
                 </button>
@@ -951,6 +956,8 @@ export default function AdminDashboard() {
 
           {/* ส่วนเนื้อหาหลักทางด้านขวา */}
           <div className="admin-content" style={{ paddingRight: '32px' }}>
+
+            {activeTab === 'overview' && <AdminOverview onNavigate={(tab, status) => { if (status) setFilterBookingStatus(status); setActiveTab(tab); }} />}
 
             {/* แท็บ 1: รายการจอง */}
             {activeTab === 'bookings' && (
