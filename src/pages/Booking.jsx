@@ -507,7 +507,8 @@ export default function Booking() {
             <p style={{ margin: '0 0 16px', fontSize: '13px', color: theme.textMuted }}>รหัสการจอง: <b>#{bookingRefId}</b></p>
 
             <div className="responsive-panel" style={{ border: `3px solid ${theme.yellow}`, borderRadius: '18px', padding: '16px', display: 'inline-block', backgroundColor: '#fff', marginBottom: '16px' }}>
-              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=OUTSY_BOOKING_${bookingRefId}_AMOUNT_${netTotal}`} alt="PromptPay QR Code" style={{ width: '220px', height: '220px', display: 'block' }} />
+              <img src={`../public/QR_Payment.jpg`} alt="PromptPay QR Code" style={{ width: '220px', height: '220px', display: 'block' }} />
+              {/* <img src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=OUTSY_BOOKING_${bookingRefId}_AMOUNT_${netTotal}`} alt="PromptPay QR Code" style={{ width: '220px', height: '220px', display: 'block' }} /> */}
             </div>
 
             <div className="responsive-panel" style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '12px', marginBottom: '18px' }}>
