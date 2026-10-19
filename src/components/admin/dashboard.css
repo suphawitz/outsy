@@ -70,3 +70,11 @@
 .admin-overview .dashboard-work .pink { border-top:3px solid #e7191f; }
 .dashboard-work-heading { margin-top:30px; margin-bottom:18px; }
 @media(max-width:640px) { .dashboard-header-actions { width:100%; }.dashboard-header-actions select { flex:1 1 100%; width:100%; font-size:16px; }.dashboard-header-actions button { flex:1 1 120px; } }
+.dashboard-date-range { display:flex; align-items:end; gap:8px; min-width:0; }
+.dashboard-date-range label { display:flex; flex-direction:column; gap:4px; font-size:11px; color:#573e33; min-width:0; }
+.dashboard-date-range input { min-width:0; max-width:100%; border:1px solid #e6ebf1; border-radius:12px; padding:9px; min-height:44px; background:#fff; color:#573e33; font:inherit; font-size:13px; }
+.dashboard-date-range > span { align-self:center; }
+@media(max-width:640px) { .dashboard-date-range { flex:1 1 100%; width:100%; }.dashboard-date-range label { flex:1; }.dashboard-date-range input { width:100%; font-size:16px; } }
+.admin-overview .dashboard-range-toggle[aria-pressed='true'] { background:#eafafb; border-color:#2bcdd1; color:#573e33; }
+.dashboard-date-range-panel { flex:1 1 100%; justify-content:flex-end; padding:16px; border:1px solid #e6ebf1; border-radius:14px; background:#fff; }
+@media(max-width:640px) { .dashboard-date-range-panel { justify-content:stretch; } }

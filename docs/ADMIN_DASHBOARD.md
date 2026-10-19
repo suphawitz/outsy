@@ -46,3 +46,9 @@ The header now groups one month/all dropdown, Export CSV and refresh together. M
 The dashboard palette uses OUTSY red #e7191f, yellow #fdd501, cyan #2bcdd1 and brown #573e33, with light tints for card backgrounds. The work-queue heading is an h2 outside its panel, matching the overview heading.
 
 Browser QA confirmed month/all totals, header control order, no separate month input, the work heading outside the card, and no document overflow at 320/375/768/1440px. No database settings or records changed.
+
+## Custom date ranges (2026-10-19)
+
+The time dropdown also offers “เลือกช่วงวันที่” with native start/end calendars. Inclusive Bangkok-day boundaries apply to the period summaries, rankings, province chart and export. In range mode the monthly chart is constrained to the selected dates; ranges spanning years expose its year selector. Work queues/refunds remain all-time as labelled. See BOOKING_CONFIRMATION.md for combined QA evidence.
+
+The custom-date picker is now a separate toggle button between the month/all dropdown and Export CSV. Opening it starts from the current month's full bounds (or today when viewing all). Selecting any month closes the picker and immediately restores that whole calendar month. A disabled “ช่วงวันที่กำหนดเอง” indicator appears in the dropdown only while a custom range is active; it is not a selectable range action. Browser QA verified 19–23 October switching back to 1–31 October and the open picker at 320/375/768/1440px.

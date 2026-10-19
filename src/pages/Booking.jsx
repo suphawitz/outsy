@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../client';
-import { validateImage, requireChangedRow } from '../lib/privateDocuments';
+import { requireChangedRow } from '../lib/privateDocuments';
+import { confirmPayment } from '../lib/bookingPayment';
 
 export default function Booking() {
   const { id } = useParams();
@@ -23,6 +24,9 @@ export default function Booking() {
   const [bookingRefId, setBookingRefId] = useState('');
   const [slipFile, setSlipFile] = useState(null);
   const [formError, setFormError] = useState('');
+
+  const paymentProgressRef = useRef({});
+  const createdBookingIdRef = useRef(null);
 
   const firstNameRef = useRef(null);
   const lastNameRef = useRef(null);
@@ -153,16 +157,27 @@ export default function Booking() {
       }
     }
 
-    setSubmitting(true);
+    const matchedSchedule = schedules.find(schedule => schedule.travel_date === selectedDate);
+    if (!matchedSchedule || !selectedDate) { setFormError('กรุณาเลือกรอบเดินทางก่อนดำเนินการต่อ'); return; }
+    const remaining = Number(matchedSchedule.max_capacity || 10) - Number(matchedSchedule.booked_count || 0);
+    if (totalPassengers > remaining) { setFormError(`รอบนี้เหลือที่ว่าง ${Math.max(0, remaining)} ที่นั่ง`); return; }
+    setSlipFile(null);
+    setCurrentStep(3);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const persistBooking = async () => {
+    if (createdBookingIdRef.current) throw new Error(`มีรายการจอง #${createdBookingIdRef.current} ที่บันทึกยังไม่ครบ กรุณาติดต่อผู้ดูแลก่อนทำรายการซ้ำ`);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        setFormError('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
         navigate('/login');
-        return;
+        throw new Error('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
       }
 
-      const matchedSchedule = schedules.find((schedule) => schedule.travel_date === selectedDate);
+      const { data: matchedSchedule, error: latestScheduleError } = await supabase.from('Tour_Schedules').select('*').eq('package_id', tourPackage?.package_id || packageId).eq('travel_date', selectedDate).maybeSingle();
+      if (latestScheduleError || !matchedSchedule) throw new Error('ตรวจสอบรอบเดินทางล่าสุดไม่ได้ กรุณาลองใหม่');
+      if (/cancel|closed|ยกเลิก|ปิด/i.test(matchedSchedule.status || '')) throw new Error('รอบเดินทางนี้ปิดรับการจองแล้ว');
       const scheduleId = matchedSchedule?.tour_date_id || matchedSchedule?.schedule_id;
 
       if (matchedSchedule) {
@@ -171,9 +186,7 @@ export default function Booking() {
         const remaining = max - booked;
 
         if (totalPassengers > remaining) {
-          setFormError(`ขออภัย รอบวันที่ ${selectedDate} เหลือที่ว่างเพียง ${Math.max(0, remaining)} ที่นั่ง ไม่เพียงพอสำหรับ ${totalPassengers} ท่าน`);
-          setSubmitting(false);
-          return;
+          throw new Error(`ขออภัย รอบวันที่ ${selectedDate} เหลือที่ว่างเพียง ${Math.max(0, remaining)} ที่นั่ง ไม่เพียงพอสำหรับ ${totalPassengers} ท่าน`);
         }
       }
 
@@ -196,10 +209,11 @@ export default function Booking() {
       }
 
       const { data: bookingData, error: bookingError } = await supabase.from('bookings').insert([insertRecord]).select().single();
-      if (bookingError) { setFormError(bookingError.code === '42501' ? 'ระบบยังไม่อนุญาตให้บัญชีนี้สร้างการจอง กรุณาติดต่อผู้ดูแลเพื่อตรวจสิทธิ์ Supabase' : `บันทึกการจองไม่สำเร็จ: ${bookingError.message}`); return; }
+      if (bookingError) throw new Error(bookingError.code === '42501' ? 'ระบบยังไม่อนุญาตให้บัญชีนี้สร้างการจอง กรุณาติดต่อผู้ดูแลเพื่อตรวจสิทธิ์ Supabase' : `บันทึกการจองไม่สำเร็จ: ${bookingError.message}`);
       if (!bookingData) throw new Error('ไม่สามารถสร้างรายการจองได้');
 
       const generatedBookingId = bookingData.booking_id;
+      createdBookingIdRef.current = generatedBookingId;
       setBookingRefId(String(generatedBookingId));
       const validTravelers = additionalTravelers.filter((t) => t.firstName.trim() || t.lastName.trim() || t.phone.trim());
 
@@ -215,6 +229,7 @@ export default function Booking() {
           const { data: removed, error: rollbackError } = await supabase.from('bookings').delete().eq('booking_id', generatedBookingId).select('booking_id').maybeSingle();
           if (rollbackError || !removed) throw new Error(`มีรายการจอง #${generatedBookingId} แล้ว แต่บันทึกผู้เดินทางไม่ครบ กรุณาติดต่อผู้ดูแลก่อนจองซ้ำ`);
           setBookingRefId('');
+          createdBookingIdRef.current = null;
           throw new Error('บันทึกผู้เดินทางไม่สำเร็จ และยกเลิกรายการที่เพิ่งสร้างแล้ว กรุณาตรวจสอบข้อมูลก่อนลองใหม่');
         }
       }
@@ -223,14 +238,13 @@ export default function Booking() {
         const currentPkgId = tourPackage?.package_id || packageId;
         const { data: schCurrent, error: scheduleError } = await supabase.from('Tour_Schedules').select('schedule_id, booked_count').eq('package_id', currentPkgId).eq('travel_date', selectedDate).maybeSingle();
 
-        if (scheduleError || !schCurrent) { setFormError(`มีรายการจอง #${generatedBookingId} แล้ว แต่ตรวจรอบเดินทางไม่ได้ กรุณาติดต่อผู้ดูแลก่อนจองซ้ำ`); return; }
+        if (scheduleError || !schCurrent) throw new Error(`มีรายการจอง #${generatedBookingId} แล้ว แต่ตรวจรอบเดินทางไม่ได้ กรุณาติดต่อผู้ดูแลก่อนจองซ้ำ`);
         if (schCurrent) {
           const currentBooked = Number(schCurrent.booked_count || 0);
           const newBooked = currentBooked + Number(totalPassengers);
           const { data: changedSchedule, error: capacityError } = await supabase.from('Tour_Schedules').update({ booked_count: newBooked }).eq('schedule_id', schCurrent.schedule_id).select('schedule_id').maybeSingle();
           if (capacityError || !changedSchedule) {
-            setFormError(`สร้างการจอง #${generatedBookingId} แล้ว แต่บันทึกจำนวนที่นั่งไม่ได้ กรุณาติดต่อผู้ดูแลก่อนจองซ้ำ`);
-            return;
+            throw new Error(`สร้างการจอง #${generatedBookingId} แล้ว แต่บันทึกจำนวนที่นั่งไม่ได้ กรุณาติดต่อผู้ดูแลก่อนจองซ้ำ`);
           }
         }
       }
@@ -239,48 +253,38 @@ export default function Booking() {
       setBookingRefId(generatedId);
       localStorage.setItem('outsy_last_booking_email', customer.email.trim());
       localStorage.setItem('outsy_last_booking_id', generatedId);
-      setCurrentStep(3);
+      return generatedId;
     } catch (err) {
       console.error('Booking insertion error:', err);
-      setFormError(`เกิดข้อผิดพลาด: ${err.message || 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้'}`);
-    } finally {
-      setSubmitting(false);
+      throw err;
     }
   };
 
   const handleFinishPayment = async () => {
-    if (!bookingRefId) { setFormError('ไม่พบรหัสการจอง กรุณาลองใหม่อีกครั้ง'); return; }
-    
-    // ตรวจสอบว่าแนบสลิปหรือยัง (บังคับแนบเท่านั้น)
-    if (!slipFile) {
-      setFormError('กรุณาแนบหลักฐานการโอนเงิน (สลิป) ก่อนดำเนินการต่อ');
-      return;
-    }
-
+    if (paymentProgressRef.current.inFlight) return;
+    setFormError('');
     setSubmitting(true);
     try {
-      let slipFileName = null;
-      if (slipFile) {
-        await validateImage(slipFile);
-        const fileExt = ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'})[slipFile.type];
-        slipFileName = `slip_${bookingRefId}_${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('slips').upload(slipFileName, slipFile, { upsert: false, contentType: slipFile.type });
-        if (uploadError) throw new Error(`อัปโหลดสลิปไม่สำเร็จ: ${uploadError.message}`);
-      }
-
-      const updateData = { booking_status: 'รอตรวจสอบยอด' };
-      if (slipFileName) updateData.slip = slipFileName;
-
-      const { data: updatedBooking, error: updateBookingError } = await supabase.from('bookings').update(updateData).eq('booking_id', bookingRefId).select('booking_id').maybeSingle();
-      requireChangedRow({data:updatedBooking,error:updateBookingError}, 'อัปเดตสถานะการจองไม่ได้ กรุณาตรวจสอบสิทธิ์กับผู้ดูแล');
-
+      await confirmPayment({
+        file: slipFile,
+        progress: paymentProgressRef.current,
+        createBooking: persistBooking,
+        uploadSlip: async (bookingId, file) => {
+          const ext = ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'})[file.type];
+          const path = `slip_${bookingId}_${Date.now()}.${ext}`;
+          const { error } = await supabase.storage.from('slips').upload(path, file, { upsert: false, contentType: file.type });
+          if (error) throw new Error(`อัปโหลดสลิปไม่สำเร็จ: ${error.message}`);
+          return path;
+        },
+        markPaid: async (bookingId, path) => {
+          const { data, error } = await supabase.from('bookings').update({ booking_status: 'รอตรวจสอบยอด', slip: path }).eq('booking_id', bookingId).select('booking_id').maybeSingle();
+          requireChangedRow({ data, error }, 'อัปเดตสถานะการจองไม่ได้ กรุณาตรวจสอบสิทธิ์กับผู้ดูแล');
+        },
+      });
       setCurrentStep(4);
     } catch (err) {
-      console.error('Payment upload error:', err);
-      setFormError(err.message || 'ไม่สามารถบันทึกการชำระเงินได้');
-    } finally {
-      setSubmitting(false);
-    }
+      setFormError(err.message || 'ไม่สามารถบันทึกการจองและการชำระเงินได้');
+    } finally { setSubmitting(false); }
   };
 
   const handleGoToHistory = () => {
@@ -504,7 +508,7 @@ export default function Booking() {
           <div className="responsive-panel" style={{ maxWidth: '500px', margin: '20px auto', backgroundColor: theme.card, borderRadius: '24px', padding: '32px', border: `1px solid ${theme.border}`, textAlign: 'center', boxShadow: '0 6px 24px rgba(0,0,0,0.06)' }}>
             <div className="responsive-panel" style={{ backgroundColor: theme.cyan, color: '#024245', padding: '6px 14px', borderRadius: '8px', display: 'inline-block', fontWeight: 'bold', fontSize: '13px', marginBottom: '14px' }}>PROMPTPAY QR CODE</div>
             <h2 style={{ margin: '0 0 6px', color: theme.brown }}>สแกนเพื่อชำระเงิน</h2>
-            <p style={{ margin: '0 0 16px', fontSize: '13px', color: theme.textMuted }}>รหัสการจอง: <b>#{bookingRefId}</b></p>
+            <p style={{ margin: '0 0 16px', fontSize: '13px', color: theme.textMuted }}>{bookingRefId ? <>รหัสการจอง: <b>#{bookingRefId}</b></> : 'ยังไม่บันทึกการจอง กรุณาแนบสลิปและกดแจ้งชำระเงินเสร็จสิ้นเพื่อยืนยัน'}</p>
 
             <div className="responsive-panel" style={{ border: `3px solid ${theme.yellow}`, borderRadius: '18px', padding: '16px', display: 'inline-block', backgroundColor: '#fff', marginBottom: '16px' }}>
               <img src={`/QR_Payment.jpg`} alt="PromptPay QR Code" style={{ width: '220px', height: '220px', display: 'block' }} />
@@ -526,7 +530,7 @@ export default function Booking() {
             </div>
 
             <div className="responsive-row" style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" onClick={() => setCurrentStep(2)} disabled={submitting} style={{ flex: 1, backgroundColor: '#f1f5f9', color: theme.brown, border: 'none', padding: '14px', borderRadius: '14px', fontWeight: 'bold', cursor: 'pointer' }}>ย้อนกลับ</button>
+              <button type="button" onClick={() => { setSlipFile(null); setFormError(''); setCurrentStep(2); }} disabled={submitting || !!bookingRefId} style={{ flex: 1, backgroundColor: '#f1f5f9', color: theme.brown, border: 'none', padding: '14px', borderRadius: '14px', fontWeight: 'bold', cursor: 'pointer' }}>ย้อนกลับ</button>
               <button type="button" onClick={handleFinishPayment} disabled={submitting} style={{ flex: 2, backgroundColor: theme.cyan, color: '#013a3d', border: 'none', padding: '14px', borderRadius: '14px', fontWeight: 'bold', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 }}>{submitting ? 'กำลังบันทึก...' : 'แจ้งชำระเงินเสร็จสิ้น ✓'}</button>
             </div>
           </div>

@@ -151,9 +151,11 @@ export function monthDates(month, today = bangkokDay()) {
   return { from: first, to: last.toISOString().slice(0, 10) };
 }
 
-export function reportCharts(data, { from = '', to, year }) {
+export function reportCharts(data, { from = '', to, year, limitToRange = false }) {
   const selected = summarizeDashboard(data, { from, to, today: to });
-  const annual = summarizeDashboard(data, { from: `${year}-01-01`, to: `${year}-12-31`, today: to });
+  const annualFrom = limitToRange && from > `${year}-01-01` ? from : `${year}-01-01`;
+  const annualTo = limitToRange && to < `${year}-12-31` ? to : `${year}-12-31`;
+  const annual = annualFrom > annualTo ? { rows: [] } : summarizeDashboard(data, { from: annualFrom, to: annualTo, today: to });
   const packages = new Map(data.packages.map(p => [String(p.package_id), p]));
   const provinces = new Map((data.provinces || []).map(p => [String(p.province_id), p.provincename]));
   const totals = new Map();
@@ -177,4 +179,9 @@ export function dashboardMonths(bookings = [], today = bangkokDay()) {
   }
   bookings.forEach(b => { const day = b.created_at ? bangkokDay(b.created_at) : ''; if (validDay(day)) months.add(day.slice(0, 7)); });
   return [...months].sort((a, b) => b.localeCompare(a));
+}
+
+export function dateRange(from, to) {
+  if (!validDay(from) || !validDay(to) || from > to) throw new Error('กรุณาเลือกวันที่เริ่มต้นและสิ้นสุดให้ถูกต้อง โดยวันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด');
+  return { from, to };
 }

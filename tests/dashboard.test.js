@@ -108,3 +108,16 @@ test('month dropdown contains the latest twelve months and older booking months 
  assert.ok(!months.includes('2024-01'));
  assert.equal(new Set(months).size,months.length);
 });
+test('custom date ranges include both Bangkok boundary days and reject missing or reversed bounds',()=>{
+ assert.deepEqual(dashboard.dateRange('2026-10-19','2026-10-23'),{from:'2026-10-19',to:'2026-10-23'});
+ assert.throws(()=>dashboard.dateRange('2026-10-23','2026-10-19'),/วันที่/);
+ assert.throws(()=>dashboard.dateRange('','2026-10-23'),/วันที่/);
+ const result=dashboard.summarizeDashboard(input,dashboard.dateRange('2026-10-02','2026-10-03'));
+ assert.equal(result.metrics.bookings,2);
+});
+test('custom range also limits monthly chart totals while retaining twelve labelled months',()=>{
+ const result=dashboard.reportCharts({...input,provinces:[]},{from:'2026-10-02',to:'2026-10-03',year:2026,limitToRange:true});
+ assert.equal(result.months[8].count,0);
+ assert.equal(result.months[9].count,2);
+ assert.equal(result.months[9].value,2000);
+});
